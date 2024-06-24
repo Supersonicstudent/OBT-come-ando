@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "protean-trilogy-423518-b9",
+  "private_key_id": "951494267a05edf3521c60d55a977bc9724fdf7b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBJQbMocu48czr\n6J7VrOQF/WcJRSGqJ7IynfrxwsUkHwVmAA3kVEgD27FzYtGbnmhuHq0u3f+i6Lvx\nj9mOtEwmoUWMslvrdZwlCmePYvaIMUGgJxrxNlird7FFdgBi5Ke8yHzNApC50DuD\nBm495jibflb8+59bKITQRzJRpbA0tJ20wP0ck6yepcBtc0wA+bNHQMoDPt+slHdr\nuncSJ0DACaoQJnQHnOXtiZPi+bxDwelfk/HU/SnAUXCL6eYBFYeeA5pubQXezctt\n44I85m/ONZKYiwTOB8xDedBrc3FatLjA/P687TlX8g9CPbsb8+pdDnvweQKJ72er\nv+Ee/k75AgMBAAECggEAEJL0qZRhbtjyYfS/xeFEs0439x/Yut5rgxQdx9I+vZHw\nkidYtH/BAEfBdf/ZsdYe6wLfOfbbQX0MPQyVjufiOFcS00yDk8naC4RVjQSL2EsL\nG8r58Q9d/jTStahhxxq3rtJbgfIsPi25daMUdw5YTDZEEQh8om4bMOOd1KDNupqh\nAmoPE1sWDkloVtHerZRITjIshAI9fPSjKRqQB2Us+ddDbQ9hFGMVWae4z1ga4N/1\n1aef4ELF6v3xg5NMsTZro78sSvGyUgPcSWr1Nc0I294GK9Wue2lX32M5sjfGyC92\nJQggX1qRsuVvAYzxr884KkuKs2xFvzmCeh6vIceYGwKBgQDkkY4Q1AycqX0r/lm2\nfkuEruGi7IoLoZ57CoEVhBamG81AukguFewtdGxh2OQSFw7WE8hsgT+U7ey7pspA\n+xmbFt1zawQ9wmoGTfqwByYVlar96Ber8EGX2a/e9ajS+4H84YwgTjQUtsvceiqF\nl1L8ei5mD3MqH2HRW1JT5VxGEwKBgQDYUx8RowXNnBGhuSUQGYHILrodqkuMBylr\nNhskTSacjXrgU5vScFIxpzNIOFZeoljd6wFHeEtaw3QrDOL/wq1DeN8nWXGR/hR5\ngoqWd7b12E0QzMVkHu3/4S1dJi9TRbQDLGlRG3YQ75M5ezskfUvn1NKkVF+FTax8\nh0m9ACcoQwKBgDtiQbnHjftJ4baDX8WVLIOtd/v/XqJE/ErVYNI5PjUr9fjCLSyk\nD3eDzwDg++hjSzx9aU4fimhkJGRgoh2d33o2x5RMEo8FKsy2h9IiGVf0SbesDDJk\nunX8XcAcrR8brxsHcoOWLdvP3klLCC8rMKleCR4FF5OzEZP2GP6pEX83AoGBAKf4\nov9G3pKwxOAWqzi9FZEi91FhkhfA1+BvutONNJYLJYZaZXwZyzjS43cIh8gjt21Z\ntTyRo7FuYx2qe/isaW0ixeQAB7ec2rkfLA16F479zZll5z++5H7zkg3qQIUgco6k\nRYK9GAg+fsr7bQkAYZg6IPWIrkML9Qsc4ZzoKX+RAoGBAKmeSnOjTEvXqEmJNeeL\n/ev96UVYdX32nof1l0ZC9wko0cteeaYxDoXth6CaExU4H9VFpxNvM34H8T7AZrrM\n9ADSPsIVH504qj6xZpNKX2zeF90bYhbsAQJXlAVphPw8nH+0K9TfZr5Lc49RXe+P\n2GpfAX7IDrb+4n5mZp7YaHvr\n-----END PRIVATE KEY-----\n",
+  "client_email": "kalel-chagas@protean-trilogy-423518-b9.iam.gserviceaccount.com",
+  "client_id": "102226119286339987380",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/kalel-chagas%40protean-trilogy-423518-b9.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
