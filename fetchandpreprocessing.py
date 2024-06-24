@@ -6,6 +6,7 @@ from io import BytesIO
 from datetime import datetime
 import pandas as pd 
 import json
+import ee
 
 def obter_imagem_mapa(api_key, location, zoom, width, height):
     url = 'https://maps.googleapis.com/maps/api/staticmap'
@@ -36,8 +37,8 @@ reverse_geocode_result = gmaps.reverse_geocode((40.714224, -73.961452))
 
 # Request directions via driving
 now = datetime.now()
-directions_result = gmaps.directions("Sydney Town Hall",
-                                     "Parramatta, NSW",
+directions_result = gmaps.directions("Brasília, Brazil",
+                                     "Valparaíso de Goiás, Goiás",
                                      mode="driving",
                                      departure_time=datetime(year=2024, month=6, day=24, hour=19, minute=0).timestamp() )
 # Convert the result of the directions request to JSON
@@ -67,6 +68,16 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 # Print the Series containing just the distances
 print(durations_series)
 print(duration_in_traffic_series)
+
+# Autenticação
+ee.Authenticate()
+ee.Initialize()
+# Carregando imagens Landsat 8 para o Rio de Janeiro em 2020
+imagens_landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR') \
+    .filterDate('2020-01-01', '2020-12-31') \
+    .filterBounds(ee.Geometry.Point(-43.23, -22.83))
+
+
 
 
 
