@@ -39,7 +39,7 @@ now = datetime.now()
 directions_result = gmaps.directions("Sydney Town Hall",
                                      "Parramatta, NSW",
                                      mode="driving",
-                                     departure_time=now)
+                                     departure_time=datetime(year=2024, month=6, day=24, hour=19, minute=0).timestamp() )
 # Convert the result of the directions request to JSON
 json_data = json.dumps(directions_result)
 data = json.loads(json_data)
@@ -48,19 +48,25 @@ data = json.loads(json_data)
 legs = data[0]['legs']  # Corrigido para acessar o primeiro item da lista de direções
 
 # Create an empty list to store distances
-distances = []
+durations = ["duration: "]
+duration_in_traffic = ["duration in traffic: "]
 
 # Loop through each leg and extract the distance information
 for leg in legs:
-    distance_dict = leg['distance']
-    distance_text = distance_dict['text']
-    distances.append(distance_text)
-
+    duration_dict = leg['duration']
+    duration_text = duration_dict['text']
+    durations.append(duration_text)
+for leg in legs:
+    duration_in_traffic_dict = leg['duration_in_traffic']
+    duration_in_traffic_text = duration_in_traffic_dict['text']
+    duration_in_traffic.append(duration_in_traffic_text)
 # Create a pandas Series from the list of distances
-distance_series = pd.Series(distances)
+durations_series = pd.Series(durations)
+duration_in_traffic_series = pd.Series(duration_in_traffic)
 
 # Print the Series containing just the distances
-print(distance_series)
+print(durations_series)
+print(duration_in_traffic_series)
 
 
 
