@@ -2,6 +2,7 @@ from pprint import pprint
 import googlemaps 
 import requests
 from PIL import Image
+from io import BytesIO
 from datetime import datetime
 import pandas as pd 
 import json
