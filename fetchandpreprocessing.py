@@ -2,11 +2,11 @@ from pprint import pprint
 import googlemaps 
 import requests
 from PIL import Image
-from io import BytesIO
 from datetime import datetime
 import pandas as pd 
 import json
 import ee
+import geemap
 
 def obter_imagem_mapa(api_key, location, zoom, width, height):
     url = 'https://maps.googleapis.com/maps/api/staticmap'
@@ -40,7 +40,7 @@ now = datetime.now()
 directions_result = gmaps.directions("Brasília, Brazil",
                                      "Valparaíso de Goiás, Goiás",
                                      mode="driving",
-                                     departure_time=datetime(year=2024, month=6, day=24, hour=19, minute=0).timestamp() )
+                                     departure_time=datetime(year=2024, month=6, day=25, hour=19, minute=0).timestamp() )
 # Convert the result of the directions request to JSON
 json_data = json.dumps(directions_result)
 data = json.loads(json_data)
@@ -69,13 +69,42 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 print(durations_series)
 print(duration_in_traffic_series)
 
-# Autenticação
-ee.Authenticate()
-ee.Initialize()
-# Carregando imagens Landsat 8 para o Rio de Janeiro em 2020
-imagens_landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR') \
-    .filterDate('2020-01-01', '2020-12-31') \
-    .filterBounds(ee.Geometry.Point(-43.23, -22.83))
+import ee
+
+# ID do seu projeto no Google Cloud
+project_id = 'protean-trilogy-423518-b9'  # Substitua pelo seu ID de projeto
+
+# Inicializar a API especificando o projeto
+try:
+    ee.Initialize(project=project_id)
+    print("Google Earth Engine Initialized successfully!")
+except ee.EEException as e:
+    print(f"Erro ao inicializar o Google Earth Engine: {e}")
+    
+# Criar um mapa interativo
+Map = geemap.Map(center=[0, 0], zoom=2)
+
+# Adicionar a camada de imagem de satélite do Earth Engine
+# A camada Landsat 8 TOA Reflectance (LANDSAT/LC08/C01/T1_RT_TOA) é usada como exemplo
+image = ee.ImageCollection('LANDSAT/LC08/C01/T1_RT_TOA').median()
+
+# Definir parâmetros de visualização para a imagem
+vis_params = {
+    'bands': ['B4', 'B3', 'B2'],
+    'min': 0,
+    'max': 0.3,
+    'gamma': 1.4,
+}
+
+# Adicionar a imagem ao mapa
+Map.addLayer(image, vis_params, 'Landsat 8')
+
+# Exibir o mapa
+Map.addLayerControl()  # Adicionar controles de camada ao mapa
+Map
+
+
+
 
 
 
