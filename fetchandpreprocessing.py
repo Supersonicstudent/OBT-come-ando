@@ -46,7 +46,7 @@ now = datetime.now()
 directions_result = gmaps.directions("Brasília, Brazil",
                                      "Valparaíso de Goiás, Goiás",
                                      mode="driving",
-                                     departure_time=datetime(year=2024, month=6, day=26, hour=20, minute=0).timestamp() )
+                                     departure_time=datetime(year=2024, month=6, day=27, hour=20, minute=0).timestamp() )
 # Convert the result of the directions request to JSON
 json_data = json.dumps(directions_result)
 data = json.loads(json_data)
@@ -75,8 +75,6 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 print(durations_series)
 print(duration_in_traffic_series)
 
-import ee
-
 # ID do seu projeto no Google Cloud
 project_id = 'protean-trilogy-423518-b9'  # Substitua pelo seu ID de projeto
 
@@ -87,72 +85,19 @@ try:
 except ee.EEException as e:
     print(f"Erro ao inicializar o Google Earth Engine: {e}")
     
-import ee
-import geemap
-from flask import Flask
-import time
-from selenium import webdriver
-from PIL import Image
 
 # Inicializar a biblioteca Earth Engine
 ee.Initialize()
 
-# Definir a região de interesse (uma área menor para teste, por exemplo)
-region = ee.Geometry.Rectangle([-122.45, 37.74, -122.4, 37.8])
 
-# Adicionar a camada de imagem de satélite do Earth Engine
-# A camada Landsat 8 TOA Reflectance (LANDSAT/LC08/C01/T1_RT_TOA) é usada como exemplo
-image = ee.ImageCollection('LANDSAT/LC08/C01/T1_RT_TOA').median().clip(region)
+# Criar um mapa
+mapa = geemap.Map()
 
-# Exportar a imagem como um GeoTIFF
-export_task = ee.batch.Export.image.toDrive(
-    image=image,
-    description='Landsat_Export',
-    folder='EarthEngineImages',
-    scale=30,
-    region=region.getInfo()['coordinates'],
-    fileFormat='GeoTIFF'
-)
+# Adicionar um exemplo de camada ao mapa
+dem = ee.Image('USGS/SRTMGL1_003')
+mapa.addLayer(dem, {'min': 0, 'max': 4000}, 'SRTM DEM')
 
-export_task.start()
+# Exibir o mapa
+mapa
 
-# Criar um mapa interativo usando geemap
-Map = geemap.Map(center=[0, 0], zoom=2)
 
-# Adicionar a imagem ao mapa
-Map.addLayer(image, {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.3, 'gamma': 1.4}, 'Landsat 8')
-
-# Adicionar controles de camada ao mapa
-Map.addLayerControl()
-
-# Salvar o mapa como um arquivo HTML
-Map.save('map.html')
-
-# Usar selenium para capturar uma imagem do mapa
-def save_map_as_image(html_file, output_image):
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1200,800")
-    driver = webdriver.Chrome(options=options)
-    driver.get(f"file:///{html_file}")
-    time.sleep(10)  # Aumentar o tempo de espera para garantir o carregamento completo do mapa
-    driver.save_screenshot(output_image)
-    driver.quit()
-
-# Salvar o mapa como uma imagem PNG
-save_map_as_image('map.html', 'map.png')
-
-# Abrir a imagem salva e exibir
-img = Image.open('map.png')
-img.show()
-
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return open('map.html').read()
-
-if __name__ == '__main__':
-    app.run(debug=True)
