@@ -146,3 +146,187 @@ with torch.no_grad():
 import matplotlib.pyplot as plt
 plt.imshow(segmented_image, cmap='gray')
 plt.show()
+
+### A partir daqui é um modelo de associação de imagens e tráfego e a recomendação
+### esse código provavelmente vai mudar
+
+import networkx as nx
+
+def create_road_network(segmented_images, traffic_data):
+    G = nx.Graph()
+    
+    for idx, image in enumerate(segmented_images):
+        traffic_value = traffic_data[idx]
+        # Processar a imagem segmentada para identificar as ruas e adicionar nós/arestas ao grafo
+        # Supondo que tenhamos uma função para isso: process_segmented_image(image)
+        roads = process_segmented_image(image)
+        
+        for road in roads:
+            start, end = road
+            G.add_edge(start, end, weight=traffic_value)
+    
+    return G
+
+def process_segmented_image(image):
+    # Função fictícia que processa a imagem segmentada e retorna uma lista de ruas (start, end)
+    # Esta função precisa ser implementada de acordo com o seu formato de dados
+    return [(0, 1), (1, 2), (2, 3)]  # Exemplo fictício
+
+def suggest_changes(G):
+    # Algoritmo simples para sugerir mudanças
+    # Por exemplo, encontrar os maiores gargalos e sugerir modificações
+    # Supondo que tenhamos uma função para isso: find_bottlenecks(G)
+    bottlenecks = find_bottlenecks(G)
+    
+    suggestions = []
+    for bottleneck in bottlenecks:
+        suggestions.append(f"Sugerir expansão da estrada entre {bottleneck[0]} e {bottleneck[1]}")
+    
+    return suggestions
+
+def find_bottlenecks(G):
+    # Função fictícia que encontra os maiores gargalos no grafo
+    # Esta função precisa ser implementada de acordo com o seu formato de dados e necessidades
+    return [(0, 1), (2, 3)]  # Exemplo fictício
+
+# Supondo que temos as imagens segmentadas e os dados de tráfego
+segmented_images = []  # Lista de imagens segmentadas
+traffic_data = []  # Lista de dados de tráfego
+
+# Criar a rede viária
+G = create_road_network(segmented_images, traffic_data)
+
+# Sugerir mudanças
+suggestions = suggest_changes(G)
+for suggestion in suggestions:
+    print(suggestion)
+
+
+
+### Visualisação de sugestões
+import matplotlib.pyplot as plt
+
+def visualize_suggestions(image, suggestions):
+    plt.imshow(image)
+    for suggestion in suggestions:
+        # Visualizar a sugestão na imagem
+        # Supondo que a sugestão contém coordenadas de pontos que precisam ser modificados
+        start, end = suggestion  # Exemplo fictício
+        plt.plot([start[0], end[0]], [start[1], end[1]], 'r')  # Linha vermelha para a sugestão
+    
+    plt.show()
+
+# Supondo que temos uma imagem de teste e sugestões
+test_image = Image.open('caminho/para/imagem_de_teste.jpg')
+suggestions = [(0, 1), (2, 3)]  # Exemplo fictício
+visualize_suggestions(test_image, suggestions)
+
+
+
+### Modelo GAN de criação de imagens (Definição)
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+
+# Definir o gerador
+class Generator(nn.Module):
+    def _init_(self):
+        super(Generator, self)._init_()
+        self.main = nn.Sequential(
+            nn.ConvTranspose2d(100, 256, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),
+            nn.Tanh()
+        )
+
+    def forward(self, input):
+        return self.main(input)
+
+# Definir o discriminador
+class Discriminator(nn.Module):
+    def _init_(self):
+        super(Discriminator, self)._init_()
+        self.main = nn.Sequential(
+            nn.Conv2d(3, 64, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(64, 128, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(128, 256, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(256, 1, 4, 1, 0, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input):
+        return self.main(input)
+
+# Inicializar modelos
+netG = Generator().to(device)
+netD = Discriminator().to(device)
+
+###Treinamento do modelo
+criterion = nn.BCELoss()
+optimizerD = optim.Adam(netD.parameters(), lr=0.0002, betas=(0.5, 0.999))
+optimizerG = optim.Adam(netG.parameters(), lr=0.0002, betas=(0.5, 0.999))
+
+for epoch in range(num_epochs):
+    for i, data in enumerate(dataloader, 0):
+        netD.zero_grad()
+        real_cpu = data[0].to(device)
+        batch_size = real_cpu.size(0)
+        label = torch.full((batch_size,), 1., dtype=torch.float, device=device)
+
+        output = netD(real_cpu)
+        errD_real = criterion(output, label)
+        errD_real.backward()
+        D_x = output.mean().item()
+
+        noise = torch.randn(batch_size, 100, 1, 1, device=device)
+        fake = netG(noise)
+        label.fill_(0.)
+
+        output = netD(fake.detach())
+        errD_fake = criterion(output, label)
+        errD_fake.backward()
+        D_G_z1 = output.mean().item()
+        errD = errD_real + errD_fake
+        optimizerD.step()
+
+        netG.zero_grad()
+        label.fill_(1.)
+        output = netD(fake)
+        errG = criterion(output, label)
+        errG.backward()
+        D_G_z2 = output.mean().item()
+        optimizerG.step()
+
+    print(f'Epoch [{epoch}/{num_epochs}]  Loss_D: {errD.item():.4f}  Loss_G: {errG.item():.4f}  D(x): {D_x:.4f}  D(G(z)): {D_G_z1:.4f} / {D_G_z2:.4f}')
+
+#Aplicando sugestões recomendações 
+from PIL import Image, ImageDraw
+
+def apply_suggestions(image_path, suggestions):
+    image = Image.open(image_path).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    
+    for suggestion in suggestions:
+        start, end = suggestion['start'], suggestion['end']
+        draw.line([start, end], fill='red', width=5)
+    
+    return image
+
+# Exemplo de uso
+image_path = 'caminho/para/imagem_de_teste.jpg'
+suggestions = [{'start': (50, 50), 'end': (150, 150)}, {'start': (100, 200), 'end': (300, 400)}]
+modified_image = apply_suggestions(image_path, suggestions)
+modified_image.show()
