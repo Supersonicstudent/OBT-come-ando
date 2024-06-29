@@ -14,25 +14,9 @@ import time
 from selenium import webdriver
 from flask import Flask
 
-def obter_imagem_mapa(api_key, location, zoom, width, height):
-    url = 'https://maps.googleapis.com/maps/api/staticmap'
-    params = {
-        'center': location,
-        'zoom': zoom,
-        'size': f"{width}x{height}",
-        'key': api_key
-    }
-    response = requests.get(url, params=params)
-    image = Image.open(BytesIO(response.content))
-    return image
 
 # Exemplo de utilização
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
-location = 'Quadra E, Rua A, Valparaíso de Goiás, Goiás, Brazil'
-zoom = 20 # Tente um nível de zoom mais baixo para uma área maior
-imagem_mapa = obter_imagem_mapa(api_key, location, zoom, width=2048, height=1366)
-imagem_mapa.show()
-
 gmaps = googlemaps.Client(key=api_key)
 
 # Geocoding an address
@@ -46,7 +30,7 @@ now = datetime.now()
 directions_result = gmaps.directions("Brasília, Brazil",
                                      "Valparaíso de Goiás, Goiás",
                                      mode="driving",
-                                     departure_time=datetime(year=2024, month=6, day=27, hour=20, minute=0).timestamp() )
+                                     departure_time=datetime(year=2024, month=6, day=29, hour=10, minute=0).timestamp() )
 # Convert the result of the directions request to JSON
 json_data = json.dumps(directions_result)
 data = json.loads(json_data)
@@ -75,29 +59,29 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 print(durations_series)
 print(duration_in_traffic_series)
 
-# ID do seu projeto no Google Cloud
-project_id = 'protean-trilogy-423518-b9'  # Substitua pelo seu ID de projeto
-
-# Inicializar a API especificando o projeto
-try:
-    ee.Initialize(project=project_id)
-    print("Google Earth Engine Initialized successfully!")
-except ee.EEException as e:
-    print(f"Erro ao inicializar o Google Earth Engine: {e}")
-    
-
-# Inicializar a biblioteca Earth Engine
-ee.Initialize()
 
 
-# Criar um mapa
-mapa = geemap.Map()
+# Defina suas credenciais e a URL da API
+INSTANCE_ID = '7408c9a5-3710-4be7-a186-4b21a2c07c57' 
+LAYER = 'CAMADA-QUE-EU-QUERO'  # Nome da camada conforme configurado no Sentinel Hub
+BBOX = '-47.9811389,-16.0499444,-47.9753611,-16.0505556'
+WIDTH = 512
+HEIGHT = 512
+FORMAT = 'image/png'
 
-# Adicionar um exemplo de camada ao mapa
-dem = ee.Image('USGS/SRTMGL1_003')
-mapa.addLayer(dem, {'min': 0, 'max': 4000}, 'SRTM DEM')
+# URL para solicitação
+url = f"https://services.sentinel-hub.com/ogc/wms/{INSTANCE_ID}?REQUEST=GetMap&BBOX={BBOX}&LAYERS={LAYER}&WIDTH={WIDTH}&HEIGHT={HEIGHT}&FORMAT={FORMAT}"
 
-# Exibir o mapa
-mapa
+# Faça a solicitação
+response = requests.get(url)
+
+# Verifique se a solicitação foi bem-sucedida
+if response.status_code == 200:
+    image = Image.open(BytesIO(response.content))
+    image.show()  # Exibe a imagem
+    image.save('satellite_image.png')  # Salva a imagem
+else:
+    print("Erro ao obter a imagem:", response.status_code, response.text)
+
 
 
