@@ -5,34 +5,29 @@ import pandas as pd
 import json
 import streamlit as st
 
-# Exemplo de utilização
+# Configurações básicas do API de direções
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)
-
-# Geocoding an address
-geocode_result = gmaps.geocode('1600 Amphitheatre Parkway, Mountain View, CA')
-
-# Look up an address with reverse geocoding
-reverse_geocode_result = gmaps.reverse_geocode((40.714224, -73.961452))
-
 # Request directions via driving
+origem_geral = "Santa Maria, Distrito Federal, Brazil"  # Estabelece uma origem para ambos os API´s
+destino_geral = "Valparaíso de Goiás, Brazil" # Estabelece um destino para ambos os API´s
 now = datetime.now()
-directions_result = gmaps.directions("Brasília, Brazil",
-                                     "Valparaíso de Goiás, Goiás",
+directions_result = gmaps.directions(origem_geral,
+                                     destino_geral,
                                      mode="driving",
                                      departure_time=datetime(year=2024, month=7, day=1, hour=19, minute=0).timestamp() )
 # Convert the result of the directions request to JSON
 json_data = json.dumps(directions_result)
 data = json.loads(json_data)
 
-# Access the 'legs' list where distance information is stored
-legs = data[0]['legs']  # Corrigido para acessar o primeiro item da lista de direções
+# Access the 'legs' list where duration information is stored
+legs = data[0]['legs']  # Corrigido para acessar o primeiro item da lista de durações
 
-# Create an empty list to store distances
+# Create an empty list to store durations
 durations = ["duration: "]
 duration_in_traffic = ["duration in traffic: "]
 
-# Loop through each leg and extract the distance information
+# Loop through each leg and extract the duration information
 for leg in legs:
     duration_dict = leg['duration']
     duration_text = duration_dict['text']
@@ -41,14 +36,15 @@ for leg in legs:
     duration_in_traffic_dict = leg['duration_in_traffic']
     duration_in_traffic_text = duration_in_traffic_dict['text']
     duration_in_traffic.append(duration_in_traffic_text)
-# Create a pandas Series from the list of distances
+# Create a pandas Series from the list of durations
 durations_series = pd.Series(durations)
 duration_in_traffic_series = pd.Series(duration_in_traffic)
 
-# Print the Series containing just the distances
+# Print the Series containing just the durations
 print(durations_series)
 print(duration_in_traffic_series)
 
+# Parte do mapa com o trajeto
 def get_directions(api_key, origin, destination):
     directions_url = "https://maps.googleapis.com/maps/api/directions/json?"
 
@@ -95,8 +91,8 @@ api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
 
 st.title("Mapa de Trajeto")
 
-origin = st.text_input("Origem", "Brasília, Brazil")
-destination = st.text_input("Destino", "Valparaíso de Goiás, Brazil")
+origin = st.text_input("Origem", origem_geral)
+destination = st.text_input("Destino", destino_geral)
 
 if st.button("Obter Rota"):
     routes = get_directions(api_key, origin, destination)
