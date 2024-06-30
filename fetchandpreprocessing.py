@@ -62,19 +62,15 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 print(durations_series)
 print(duration_in_traffic_series)
 
-
 # Configurações da API
 config = SHConfig()
 config.instance_id = '7408c9a5-3710-4be7-a186-4b21a2c07c57'
 config.sh_client_id = '7e35353d-f06b-493f-a8d9-3bfafa409142'
 config.sh_client_secret = 'Z9Xn6GlcnZXcMqsjGdso7nu7aitDeQJ7'
 
-
 # Configuração da bounding box
-# Use coordenadas da área de interesse
 bounding_box = BBox(bbox=[-47.9292, -15.7801, -47.9291, -15.7800], crs=CRS.WGS84)  # Ajuste essas coordenadas para sua área de interesse
-resolution = 10  # Resolução em metros por pixel
-
+resolution = 30  # Resolução em metros por pixel
 
 # Configurar solicitação
 request = SentinelHubRequest(
@@ -111,6 +107,6 @@ request = SentinelHubRequest(
     size=bbox_to_dimensions(bounding_box, resolution),
     config=config,
     data_folder=r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT')
+
 # Executar solicitação e salvar imagem
 image = request.get_data(save_data=True)[0]
-
