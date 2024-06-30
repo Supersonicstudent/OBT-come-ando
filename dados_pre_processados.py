@@ -1,22 +1,9 @@
-from pprint import pprint
 import googlemaps 
 import requests
-from PIL import Image
-from io import BytesIO
 from datetime import datetime
 import pandas as pd 
 import json
-import ee
-import geemap
 import streamlit as st
-import folium
-import time
-from selenium import webdriver
-from flask import Flask
-from sentinelhub import SHConfig, BBox, CRS, MimeType, SentinelHubRequest, DataCollection, bbox_to_dimensions
-import numpy as np 
-
-
 
 # Exemplo de utilização
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
@@ -61,9 +48,6 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 # Print the Series containing just the distances
 print(durations_series)
 print(duration_in_traffic_series)
-
-import requests
-import streamlit as st
 
 def get_directions(api_key, origin, destination):
     directions_url = "https://maps.googleapis.com/maps/api/directions/json?"
@@ -111,8 +95,8 @@ api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
 
 st.title("Mapa de Trajeto")
 
-origin = st.text_input("Origem", "Floripa, Brazil")
-destination = st.text_input("Destino", "Blumenau, Brazil")
+origin = st.text_input("Origem", "Brasília, Brazil")
+destination = st.text_input("Destino", "Valparaíso de Goiás, Brazil")
 
 if st.button("Obter Rota"):
     routes = get_directions(api_key, origin, destination)
