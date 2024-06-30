@@ -62,9 +62,9 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 print(durations_series)
 print(duration_in_traffic_series)
 
+
 # Configurações da API
 config = SHConfig()
-
 config.instance_id = '7408c9a5-3710-4be7-a186-4b21a2c07c57'
 config.sh_client_id = '7e35353d-f06b-493f-a8d9-3bfafa409142'
 config.sh_client_secret = 'Z9Xn6GlcnZXcMqsjGdso7nu7aitDeQJ7'
@@ -73,77 +73,44 @@ config.sh_client_secret = 'Z9Xn6GlcnZXcMqsjGdso7nu7aitDeQJ7'
 # Configuração da bounding box
 # Use coordenadas da área de interesse
 bounding_box = BBox(bbox=[-47.9292, -15.7801, -47.9291, -15.7800], crs=CRS.WGS84)  # Ajuste essas coordenadas para sua área de interesse
-resolution = 2  # Resolução em metros por pixel
+resolution = 10  # Resolução em metros por pixel
 
-# Calcular dimensões da imagem
-width, height = bbox_to_dimensions(bounding_box, resolution)
 
-# Se a largura ou altura for maior que 2500, dividir a bounding box
-max_size = 2500
-num_tiles_x = int(np.ceil(width / max_size))
-num_tiles_y = int(np.ceil(height / max_size))
+# Configurar solicitação
+request = SentinelHubRequest(
+    evalscript='''
+        //VERSION=3
+        function setup() {
+            return {
+                input: ["B04", "B03", "B02"],
+                output: { bands: 3 }
+            };
+        }
 
-# Configuração do Sentinel Hub
-config = SHConfig()
-config.instance_id = '7408c9a5-3710-4be7-a186-4b21a2c07c57'
-config.sh_client_id = '49ccec93-d9b0-4416-b408-f7f612c7445b'
-config.sh_client_secret = ''
-
-def get_image_for_bbox(bbox):
-    request = SentinelHubRequest(
-        evalscript='''
-            //VERSION=3
-            function setup() {
-                return {
-                    input: ["B04", "B03", "B02"],
-                    output: { bands: 3 }
-                };
-            }
-
-            function evaluatePixel(sample) {
-                let minVal = 0.0;
-                let maxVal = 0.3;
-                let viz = [
-                    sample.B04 > maxVal ? 1.0 : sample.B04 < minVal ? 0.0 : (sample.B04 - minVal) / (maxVal - minVal),
-                    sample.B03 > maxVal ? 1.0 : sample.B03 < minVal ? 0.0 : (sample.B03 - minVal) / (maxVal - minVal),
-                    sample.B02 > maxVal ? 1.0 : sample.B02 < minVal ? 0.0 : (sample.B02 - minVal) / (maxVal - minVal),
-                ];
-                return viz;
-            }
-        ''',
-        input_data=[
-            SentinelHubRequest.input_data(
-                data_collection=DataCollection.SENTINEL2_L2A,
-                time_interval=('2023-06-01', '2023-06-30')
-            )
-        ],
-        responses=[
-            SentinelHubRequest.output_response('default', MimeType.PNG)
-        ],
-        bbox=bbox,
-        size=bbox_to_dimensions(bbox, resolution),
-        config=config,
-        data_folder=r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT'
-    )
-
-    return request.get_data(save_data=True)[0]
-
-# Dividir a bounding box e obter imagens
-for i in range(num_tiles_x):
-    for j in range(num_tiles_y):
-        tile_bbox = BBox([
-            bounding_box.min_x + i * (bounding_box.max_x - bounding_box.min_x) / num_tiles_x,
-            bounding_box.min_y + j * (bounding_box.max_y - bounding_box.min_y) / num_tiles_y,
-            bounding_box.min_x + (i + 1) * (bounding_box.max_x - bounding_box.min_x) / num_tiles_x,
-            bounding_box.min_y + (j + 1) * (bounding_box.max_y - bounding_box.min_y) / num_tiles_y
-        ], crs=bounding_box.crs)
-        
-        image = get_image_for_bbox(tile_bbox)
-
-        # Visualizar imagem
-        import matplotlib.pyplot as plt
-        plt.imshow(image)
-        plt.title(f'Tile {i}, {j}')
-        plt.show()
-
+        function evaluatePixel(sample) {
+            let minVal = 0.0;
+            let maxVal = 0.3;
+            let viz = [
+                sample.B04 > maxVal ? 1.0 : sample.B04 < minVal ? 0.0 : (sample.B04 - minVal) / (maxVal - minVal),
+                sample.B03 > maxVal ? 1.0 : sample.B03 < minVal ? 0.0 : (sample.B03 - minVal) / (maxVal - minVal),
+                sample.B02 > maxVal ? 1.0 : sample.B02 < minVal ? 0.0 : (sample.B02 - minVal) / (maxVal - minVal),
+            ];
+            return viz;
+        }
+    ''',
+    input_data=[
+        SentinelHubRequest.input_data(
+            data_collection=DataCollection.SENTINEL2_L2A,
+            time_interval=('2023-06-01', '2023-06-30')
+        )
+    ],
+    responses=[
+        SentinelHubRequest.output_response('default', MimeType.PNG)
+    ],
+    bbox=bounding_box,
+    size=bbox_to_dimensions(bounding_box, resolution),
+    config=config,
+    data_folder=r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT')
+# Executar solicitação e salvar imagem
+image = request.get_data(save_data=True)[0]
 
