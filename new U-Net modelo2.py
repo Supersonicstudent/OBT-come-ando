@@ -315,7 +315,7 @@ def visualize_suggestions(image, suggestions):
     plt.show()
 
 # Supondo que temos uma imagem de teste e sugestões
-test_image = Image.open('caminho/para/imagem_de_teste.jpg')
+test_image = Image.open('C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\Local do engarrafamento.jpg')
 suggestions = [(0, 1), (2, 3)]  # Exemplo fictício
 visualize_suggestions(test_image, suggestions)
 
@@ -424,7 +424,7 @@ def apply_suggestions(image_path, suggestions):
     return image
 
 # Exemplo de uso
-image_path = 'caminho/para/imagem_de_teste.jpg'
+image_path = 'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\Local do engarrafamento.jpg'
 suggestions = [{'start': (50, 50), 'end': (150, 150)}, {'start': (100, 200), 'end': (300, 400)}]
 modified_image = apply_suggestions(image_path, suggestions)
 modified_image.show()
