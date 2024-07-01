@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd 
 import json
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageOps
 from io import BytesIO
 
 # Configurações básicas do API de direções
@@ -47,7 +47,6 @@ print(durations_series)
 print(duration_in_traffic_series)
 
 # Parte do mapa com o trajeto 
-
 def get_directions(api_key, origin, destination):
     directions_url = "https://maps.googleapis.com/maps/api/directions/json?"
 
@@ -66,10 +65,10 @@ def get_directions(api_key, origin, destination):
             routes = [route["overview_polyline"]["points"] for route in directions_data["routes"]]
             return routes
         else:
-            st.error(f"Erro na solicitação da rota: {directions_data['status']}")
+            print(f"Erro na solicitação da rota: {directions_data['status']}")
             return None
     else:
-        st.error(f"Erro ao obter a rota. Código de status: {response.status_code}")
+        print(f"Erro ao obter a rota. Código de status: {response.status_code}")
         return None
 
 def get_route_map(api_key, route, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
@@ -87,29 +86,26 @@ def get_route_map(api_key, route, size="600x300", maptype="satellite", weight=2,
     if response.status_code == 200:
         return response.content
     else:
-        st.error(f"Erro ao obter a imagem do mapa. Código de status: {response.status_code}")
+        print(f"Erro ao obter a imagem do mapa. Código de status: {response.status_code}")
         return None
 
-def save_image_to_variable(image_content):
-    image = Image.open(BytesIO(image_content))
-    return image
-
-api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
-
-st.title("Mapa de Trajeto")
-
-origin = st.text_input("Origem", "Floripa, Brazil")
-destination = st.text_input("Destino", "Blumenau, Brazil")
-
-if st.button("Obter Rota"):
+def save_image(api_key, origin, destination, file_path):
     routes = get_directions(api_key, origin, destination)
     
     if routes:
-        route_option = st.selectbox("Selecione uma rota", range(len(routes)))
-        route_map = get_route_map(api_key, routes[route_option])
-        
+        route_map = get_route_map(api_key, routes[0])  # Aqui pegamos apenas a primeira rota
         if route_map:
-            st.image(route_map, caption="Mapa do Trajeto")
-            saved_image = save_image_to_variable(route_map)
-            # Agora você pode acessar a imagem salva na variável saved_image e visualizá-la
-            st.image(saved_image, caption="Imagem Salva")
+            with open(file_path, 'wb') as f:
+                f.write(route_map)
+            print(f"Imagem salva em: {file_path}")
+        else:
+            print("Não foi possível obter o mapa do trajeto.")
+    else:
+        print("Não foi possível obter as rotas.")
+# Exemplo de uso:
+api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
+origin = origem_geral
+destination = destino_geral
+# Montando o nome do arquivo com formatação de string
+nome_arquivo = f"Rota de {origem_geral} para {destino_geral}.jpg"
+save_image(api_key, origin, destination, nome_arquivo)
