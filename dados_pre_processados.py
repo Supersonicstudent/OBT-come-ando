@@ -4,6 +4,8 @@ from datetime import datetime
 import pandas as pd 
 import json
 import streamlit as st
+from PIL import Image
+from io import BytesIO
 
 # Configurações básicas do API de direções
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
@@ -44,7 +46,8 @@ duration_in_traffic_series = pd.Series(duration_in_traffic)
 print(durations_series)
 print(duration_in_traffic_series)
 
-# Parte do mapa com o trajeto
+# Parte do mapa com o trajeto 
+
 def get_directions(api_key, origin, destination):
     directions_url = "https://maps.googleapis.com/maps/api/directions/json?"
 
@@ -87,12 +90,16 @@ def get_route_map(api_key, route, size="600x300", maptype="satellite", weight=2,
         st.error(f"Erro ao obter a imagem do mapa. Código de status: {response.status_code}")
         return None
 
+def save_image_to_variable(image_content):
+    image = Image.open(BytesIO(image_content))
+    return image
+
 api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
 
 st.title("Mapa de Trajeto")
 
-origin = st.text_input("Origem", origem_geral)
-destination = st.text_input("Destino", destino_geral)
+origin = st.text_input("Origem", "Floripa, Brazil")
+destination = st.text_input("Destino", "Blumenau, Brazil")
 
 if st.button("Obter Rota"):
     routes = get_directions(api_key, origin, destination)
@@ -103,3 +110,6 @@ if st.button("Obter Rota"):
         
         if route_map:
             st.image(route_map, caption="Mapa do Trajeto")
+            saved_image = save_image_to_variable(route_map)
+            # Agora você pode acessar a imagem salva na variável saved_image e visualizá-la
+            st.image(saved_image, caption="Imagem Salva")
