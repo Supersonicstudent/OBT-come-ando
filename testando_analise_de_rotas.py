@@ -52,26 +52,34 @@ for index, row in data.iterrows():
         }
         steps_data.append(step_data)
         step_durations.append((step_duration, step_duration_in_traffic))
-    
-    # Imprimir a duração original e a duração em tráfego para cada passo
-    for step_duration, step_duration_in_traffic in step_durations:
-        print(f"Duração do passo: {step_duration / 60:.2f} minutos, Duração em tráfego: {step_duration_in_traffic / 60:.2f} minutos")
 
 # Convertendo os dados para um DataFrame
 steps_df = pd.DataFrame(steps_data)
-
-# Exibir o DataFrame
-print(steps_df)
 diference_of_times_list = []
 for step_duration, step_duration_in_traffic in step_durations:
     diference_of_times = step_duration_in_traffic/60 - step_duration/60
     diference_of_times_list.append(diference_of_times)
-def print_maior_diferenca(difference_of_times_list):
+def print_maior_diferenca(difference_of_times_list, steps_df):
     # Verifica se a lista não está vazia
     if difference_of_times_list:
-        # Encontra o maior valor na lista
-        maior_diferenca = max(difference_of_times_list)
+        # Encontra o índice do maior valor na lista
+        indice_maior_diferenca = difference_of_times_list.index(max(difference_of_times_list))
+        
+        # Acessa os dados do passo com maior diferença de tempo
+        start_location = steps_df.loc[indice_maior_diferenca, 'start_location']
+        end_location = steps_df.loc[indice_maior_diferenca, 'end_location']
+        
+        # Imprime o maior valor de diferença e as localizações
+        maior_diferenca = difference_of_times_list[indice_maior_diferenca]
         print(f"Maior diferença de tempo: {maior_diferenca:.2f} minutos")
+        print(f"Start Location: {start_location}")
+        print(f"End Location: {end_location}")
     else:
         print("A lista de diferenças está vazia.")
-print_maior_diferenca(diference_of_times_list)
+
+# Exemplo de uso com o seu DataFrame steps_df e lista difference_of_times_list
+# Supondo que você já tenha calculado difference_of_times_list e preenchido steps_df
+# com os dados necessários.
+
+# Chamada da função para imprimir o maior valor da lista
+print_maior_diferenca(diference_of_times_list, steps_df)
