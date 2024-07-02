@@ -155,3 +155,5 @@ save_image(api_key, origin, destination, file_path, center, zoom)
 # Função para retornar os endereços
 def get_congestion_addresses():
     return start_address, end_address
+def trafficdata ():
+    return max_diference, max_diference_value, start_location_max, end_location_max 

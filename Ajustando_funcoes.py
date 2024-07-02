@@ -9,6 +9,7 @@ from PIL import Image
 from sklearn.model_selection import KFold
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
+from dados_pre_processados import trafficdata
 
 # Dataset personalizado
 class MapDataset(Dataset):
@@ -113,10 +114,9 @@ class UNet(nn.Module):
 
 
 # Diretórios das imagens e máscaras
-image_dir = "path/to/images"
-mask_dir = "path/to/masks"
-traffic_data = np.load("path/to/traffic_data.npy")  # Carregando dados de tráfego
-
+image_dir = "C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Local do engarrafamento"
+mask_dir = "C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Segmentada.jpg"
+traffic_data = trafficdata
 # Inicialização do dataset e dataloader
 dataset = MapDataset(image_dir, mask_dir, traffic_data, transform)
 dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
@@ -320,19 +320,19 @@ def suggest_changes(image, model, start_address, end_address, segmentada):
     return result
 
 # Exemplo de uso
-
 # Obtendo os endereços de congestionamento
 start_address, end_address = get_congestion_addresses()
 
+# Caminhos para as imagens
+image_path = r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Local do engarrafamento.jpg'
+segmentada_path = r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Segmentada.jpg' #supondo que já temos a segmentada
+
+# Supondo que 'model' é seu modelo U-Net previamente treinado
 # Supondo que 'segmentada' é a imagem segmentada
-segmentada = np.array(Image.open('Segmentada.jpg').convert('L')) / 255.0
-
-# Supondo que 'image' é a imagem segmentada pelo modelo U-Net
-image = np.array(Image.open('Local do engarrafamento.jpg').convert('RGB')) / 255.0
-
-result = suggest_changes(image, model, start_address, end_address, segmentada)
+result = suggest_changes(image_path, model, start_address, end_address, segmentada_path)
 
 print(result)
+
 # Supondo que temos as imagens segmentadas e os dados de tráfego
 segmented_images = []  # Lista de imagens segmentadas
 traffic_data = []  # Lista de dados de tráfego
@@ -354,7 +354,7 @@ def visualize_suggestions(image, suggestions):
     plt.show()
 
 # Supondo que temos uma imagem de teste e sugestões
-test_image = Image.open('caminho/para/imagem_de_teste.jpg')
+test_image = Image.open('C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Local do engarrafamento.jpg')
 suggestions = [(0, 1), (2, 3)]  # Exemplo fictício
 visualize_suggestions(test_image, suggestions)
 
