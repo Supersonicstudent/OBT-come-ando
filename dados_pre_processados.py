@@ -150,4 +150,8 @@ destination = end_address
 nome_arquivo = "Local do engarrafamento.jpg"
 center = f"{start_location_var['lat']},{start_location_var['lng']}"
 zoom = 18
-save_image(api_key, origin, destination, nome_arquivo, center, zoom)
+file_path = r"C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\{}".format(nome_arquivo)
+save_image(api_key, origin, destination, file_path, center, zoom)
+# Função para retornar os endereços
+def get_congestion_addresses():
+    return start_address, end_address

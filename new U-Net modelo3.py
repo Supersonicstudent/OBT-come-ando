@@ -285,11 +285,6 @@ def suggest_changes(G):
     
     return suggestions
 
-def find_bottlenecks(G):
-    # Função fictícia que encontra os maiores gargalos no grafo
-    # Esta função precisa ser implementada de acordo com o seu formato de dados e necessidades
-    return [(0, 1), (2, 3)]  # Exemplo fictício
-
 # Supondo que temos as imagens segmentadas e os dados de tráfego
 segmented_images = []  # Lista de imagens segmentadas
 traffic_data = []  # Lista de dados de tráfego
