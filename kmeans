@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from skimage.metrics import structural_similarity as ssim
 
 def preprocess_image(image):
     # Aplicar um filtro de mediana para suavizar a imagem e reduzir o ruído
@@ -42,8 +43,12 @@ def kmeans_segmentation(image_path, k=3, kernel_size=3):
     # Converter a imagem segmentada em escala de cinza
     segmented_gray = cv2.cvtColor(segmented_image, cv2.COLOR_RGB2GRAY)
     
-    # Converter pixels de cinza para branco (255)
-    segmented_gray[segmented_gray > 0] = 255
+    # Definir a faixa de cinza a ser convertida para branco
+    lower_gray = 120
+    upper_gray = 170
+    
+    # Converter pixels de cinza na faixa para branco (255)
+    segmented_gray[(segmented_gray >= lower_gray) & (segmented_gray <= upper_gray)] = 255
     
     # Aplicar uma binarização para criar uma máscara
     _, mask = cv2.threshold(segmented_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -62,37 +67,72 @@ def kmeans_segmentation(image_path, k=3, kernel_size=3):
     final_mask = np.zeros_like(mask)
     cv2.drawContours(final_mask, contours, -1, (255), thickness=cv2.FILLED)
     
-    # Mostrar as imagens original, segmentada, a máscara e a máscara final
-    plt.figure(figsize=(20, 10))
-    plt.subplot(1, 5, 1)
+    return segmented_image, final_mask
+
+def evaluate_segmentation(original_image, segmented_image, original_mask, segmented_mask):
+    # Converter a máscara original para escala de cinza se necessário
+    if original_mask.ndim == 3:
+        original_mask = cv2.cvtColor(original_mask, cv2.COLOR_RGB2GRAY)
+    
+    # Converter a máscara segmentada para escala de cinza se necessário
+    if segmented_mask.ndim == 3:
+        segmented_mask = cv2.cvtColor(segmented_mask, cv2.COLOR_RGB2GRAY)
+    
+    # Calcular SSIM entre a imagem original e a imagem segmentada
+    ssim_score, _ = ssim(original_image, segmented_image, win_size=11, full=True, channel_axis=-1)
+    print(f"SSIM: {ssim_score}")
+
+    # Calcular IoU entre duas máscaras binárias
+    intersection = np.logical_and(original_mask, segmented_mask)
+    union = np.logical_or(original_mask, segmented_mask)
+    iou_score = np.sum(intersection) / np.sum(union)
+    print(f"IoU: {iou_score}")
+
+    # Visualizar as imagens para comparação
+    plt.figure(figsize=(15, 10))
+
+    plt.subplot(2, 3, 1)
     plt.title('Original Image')
-    plt.imshow(image_rgb)
+    plt.imshow(original_image)
     plt.axis('off')
 
-    plt.subplot(1, 5, 2)
+    plt.subplot(2, 3, 2)
     plt.title('Segmented Image')
     plt.imshow(segmented_image)
     plt.axis('off')
 
-    plt.subplot(1, 5, 3)
-    plt.title('Segmented Gray Image')
-    plt.imshow(segmented_gray, cmap='gray')
-    plt.axis('off')
-    
-    plt.subplot(1, 5, 4)
-    plt.title('Mask')
-    plt.imshow(mask, cmap='gray')
-    plt.axis('off')
-    
-    plt.subplot(1, 5, 5)
-    plt.title('Final Mask')
-    plt.imshow(final_mask, cmap='gray')
+    plt.subplot(2, 3, 3)
+    plt.title('Original Mask')
+    plt.imshow(original_mask, cmap='gray')
     plt.axis('off')
 
+    plt.subplot(2, 3, 4)
+    plt.title('Segmented Mask')
+    plt.imshow(segmented_mask, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(2, 3, 5)
+    plt.title('Intersection')
+    plt.imshow(intersection, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(2, 3, 6)
+    plt.title('Union')
+    plt.imshow(union, cmap='gray')
+    plt.axis('off')
+
+    plt.tight_layout()
     plt.show()
 
 # Substitua pelo caminho real da imagem
 image_path = r'C:\Users\steve\OneDrive\Documents\Local do engarrafamento.jpg'
 
 # Exemplo de uso
-kmeans_segmentation(image_path, k=3, kernel_size=1)
+original_image = cv2.imread(image_path)
+original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+original_mask = preprocess_image(original_image)
+
+segmented_image, segmented_mask = kmeans_segmentation(image_path, k=3, kernel_size=1)
+
+# Avaliar a segmentação
+evaluate_segmentation(original_image, segmented_image, original_mask, segmented_mask)
