@@ -3,10 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def kmeans_segmentation(image_path, k=2):
+    # Verificar se o caminho da imagem está correto
+    print(f"Tentando carregar a imagem de: {image_path}")
+    
     # Carregar a imagem
     image = cv2.imread(image_path)
+    
+    # Verificar se a imagem foi carregada com sucesso
+    if image is None:
+        print(f"Erro ao carregar a imagem. Verifique o caminho do arquivo: {image_path}")
+        return
+    
     # Converter a imagem para o espaço de cores RGB
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
     # Converter a imagem RGB para um formato de dados 2D
     pixels = image_rgb.reshape(-1, 3)
     
@@ -16,6 +26,7 @@ def kmeans_segmentation(image_path, k=2):
     
     # Converter os centros para inteiros
     centers = np.uint8(centers)
+    
     # Recriar a imagem segmentada
     segmented_image = centers[labels.flatten()]
     segmented_image = segmented_image.reshape(image_rgb.shape)
@@ -34,5 +45,8 @@ def kmeans_segmentation(image_path, k=2):
 
     plt.show()
 
+# Substitua pelo caminho real da imagem
+image_path = r'C:\Users\steve\OneDrive\Documents\Local do engarrafamento.jpg'
+
 # Exemplo de uso
-kmeans_segmentation(r'insira_imagem_aqui')
+kmeans_segmentation(image_path)
