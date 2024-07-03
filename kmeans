@@ -2,9 +2,14 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-def kmeans_segmentation(image_path, k=2):
-    # Verificar se o caminho da imagem está correto
-    print(f"Tentando carregar a imagem de: {image_path}")
+def preprocess_image(image):
+    # Aplicar um filtro de mediana para suavizar a imagem e reduzir o ruído
+    return cv2.medianBlur(image, 5)
+
+def kmeans_segmentation(image_path, k=3, kernel_size=3):
+    # Verificar se o tamanho do kernel é válido
+    if kernel_size < 1:
+        raise ValueError("O tamanho do kernel deve ser um número inteiro positivo maior que zero.")
     
     # Carregar a imagem
     image = cv2.imread(image_path)
@@ -13,6 +18,9 @@ def kmeans_segmentation(image_path, k=2):
     if image is None:
         print(f"Erro ao carregar a imagem. Verifique o caminho do arquivo: {image_path}")
         return
+    
+    # Pré-processar a imagem
+    image = preprocess_image(image)
     
     # Converter a imagem para o espaço de cores RGB
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -31,16 +39,54 @@ def kmeans_segmentation(image_path, k=2):
     segmented_image = centers[labels.flatten()]
     segmented_image = segmented_image.reshape(image_rgb.shape)
     
-    # Mostrar as imagens original e segmentada
-    plt.figure(figsize=(10, 5))
-    plt.subplot(1, 2, 1)
+    # Converter a imagem segmentada em escala de cinza
+    segmented_gray = cv2.cvtColor(segmented_image, cv2.COLOR_RGB2GRAY)
+    
+    # Converter pixels de cinza para branco (255)
+    segmented_gray[segmented_gray > 0] = 255
+    
+    # Aplicar uma binarização para criar uma máscara
+    _, mask = cv2.threshold(segmented_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    # Ajustar o tamanho do kernel
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    
+    # Aplicar operações morfológicas para refinar a máscara
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    
+    # Encontrar contornos
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Criar uma máscara final onde as ruas serão brancas e o resto será preto
+    final_mask = np.zeros_like(mask)
+    cv2.drawContours(final_mask, contours, -1, (255), thickness=cv2.FILLED)
+    
+    # Mostrar as imagens original, segmentada, a máscara e a máscara final
+    plt.figure(figsize=(20, 10))
+    plt.subplot(1, 5, 1)
     plt.title('Original Image')
     plt.imshow(image_rgb)
     plt.axis('off')
 
-    plt.subplot(1, 2, 2)
+    plt.subplot(1, 5, 2)
     plt.title('Segmented Image')
     plt.imshow(segmented_image)
+    plt.axis('off')
+
+    plt.subplot(1, 5, 3)
+    plt.title('Segmented Gray Image')
+    plt.imshow(segmented_gray, cmap='gray')
+    plt.axis('off')
+    
+    plt.subplot(1, 5, 4)
+    plt.title('Mask')
+    plt.imshow(mask, cmap='gray')
+    plt.axis('off')
+    
+    plt.subplot(1, 5, 5)
+    plt.title('Final Mask')
+    plt.imshow(final_mask, cmap='gray')
     plt.axis('off')
 
     plt.show()
@@ -49,4 +95,4 @@ def kmeans_segmentation(image_path, k=2):
 image_path = r'C:\Users\steve\OneDrive\Documents\Local do engarrafamento.jpg'
 
 # Exemplo de uso
-kmeans_segmentation(image_path)
+kmeans_segmentation(image_path, k=3, kernel_size=1)
