@@ -274,7 +274,7 @@ def process_segmented_image(image):
     return [(0, 1), (1, 2), (2, 3)]  # Exemplo fictício
 
 # Aqui vamos importar os dados pré-prpcessados dos endereços do engarrafamento, que estão no arquivo dados_pre_processados.py
-#---------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------##
 from dados_pre_processados import get_congestion_addresses
 def suggest_changes(image, model, start_address, end_address, segmentada):
     """
