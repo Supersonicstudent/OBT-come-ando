@@ -1,0 +1,129 @@
+import os
+import torch
+import torchvision.transforms as transforms
+from torch.utils.data import Dataset, DataLoader
+from PIL import Image
+import torch.nn as nn
+import torch.optim as optim
+import torchvision.models as models
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Caminhos para imagens e máscaras
+images_dir = r'c:\Users\João Vitor\Downloads\imgs\train_images'
+masks_dir = r'c:\Users\João Vitor\Downloads\imgs\train_masks'
+
+# Definindo a transformação das imagens e máscaras
+transform = transforms.Compose([
+    transforms.Resize((256, 256)),  # Redimensiona as imagens, ajuste conforme necessário
+    transforms.ToTensor()
+])
+
+class SingleImageDataset(Dataset):
+    def __init__(self, images_dir, masks_dir, transform=None):
+        self.images_dir = images_dir
+        self.masks_dir = masks_dir
+        self.image_files = sorted(os.listdir(images_dir))
+        self.mask_files = sorted(os.listdir(masks_dir))
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.image_files)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.images_dir, self.image_files[idx])
+        mask_path = os.path.join(self.masks_dir, self.mask_files[idx])
+        
+        image = Image.open(img_path).convert('RGB')
+        mask = Image.open(mask_path).convert('L')
+        
+        if self.transform:
+            image = self.transform(image)
+            mask = self.transform(mask)
+        
+        return image, mask
+
+# Carregando o dataset
+dataset = SingleImageDataset(images_dir, masks_dir, transform=transform)
+dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+
+# Definindo o modelo DeepLabV3, função de perda e otimizador
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = models.segmentation.deeplabv3_resnet50(pretrained=True)
+model.classifier[4] = nn.Conv2d(256, 1, kernel_size=1)  # Ajustando a camada de saída
+model = model.to(device)
+criterion = nn.BCEWithLogitsLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# Scheduler para ajuste da taxa de aprendizado
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
+
+def train_model(model, dataloader, criterion, optimizer, scheduler, device, num_epochs):
+    model.train()
+    train_losses = []
+    for epoch in range(num_epochs):
+        epoch_loss = 0.0
+        for images, masks in dataloader:
+            images = images.to(device)
+            masks = masks.to(device).unsqueeze(1)  # Adicionando a dimensão do canal
+            
+            optimizer.zero_grad()
+            outputs = model(images)['out']
+            loss = criterion(outputs, masks)
+            loss.backward()
+            optimizer.step()
+            
+            epoch_loss += loss.item()
+
+        scheduler.step()
+        avg_loss = epoch_loss / len(dataloader)
+        train_losses.append(avg_loss)
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}')
+        # Salvando o modelo após cada época
+        torch.save(model.state_dict(), f'deeplabv3_model_epoch_{epoch+1}.pth')
+
+    return model, train_losses
+
+# Treinando o modelo
+num_epochs = 5  # Ajuste conforme necessário
+trained_model, train_losses = train_model(model, dataloader, criterion, optimizer, scheduler, device, num_epochs)
+
+# Salvando o modelo treinado final
+torch.save(trained_model.state_dict(), 'deeplabv3_model_final.pth')
+
+# Função para prever a máscara de uma nova imagem
+def predict(model, image_path, device):
+    model.eval()
+    image = Image.open(image_path).convert('RGB')
+    transform = transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor()
+    ])
+    image = transform(image).unsqueeze(0).to(device)
+    
+    with torch.no_grad():
+        output = model(image)['out']
+        output = torch.sigmoid(output)
+        output = output.cpu().numpy().squeeze()
+        binary_output = (output > 0.5).astype(np.uint8)
+    
+    return binary_output
+
+# Exemplo de uso para uma nova imagem
+test_image_path = r'c:\Users\João Vitor\Downloads\test_img\test1.jpg'
+predicted_mask = predict(trained_model, test_image_path, device)
+
+# Exibindo a imagem segmentada
+plt.imshow(predicted_mask, cmap='gray')
+plt.show()
+
+# Função para visualizar a perda durante o treinamento
+def plot_losses(train_losses):
+    plt.plot(train_losses, label='Training Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+# Visualizando a perda durante o treinamento
+plot_losses(train_losses)
