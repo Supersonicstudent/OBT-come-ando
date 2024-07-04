@@ -19,7 +19,7 @@ directions_result = gmaps.directions(
     origem_geral,
     destino_geral,
     mode="driving",
-    departure_time=datetime(year=2024, month=7, day=2, hour=19, minute=0).timestamp()
+    departure_time=datetime(year=2024, month=7, day=10, hour=19, minute=0).timestamp()
 )
 
 # Converter o resultado da solicitação de direções para um DataFrame do pandas
@@ -155,5 +155,3 @@ save_image(api_key, origin, destination, file_path, center, zoom)
 # Função para retornar os endereços
 def get_congestion_addresses():
     return start_address, end_address
-def trafficdata ():
-    return "oi"
