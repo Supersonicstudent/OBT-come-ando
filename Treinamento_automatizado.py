@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
@@ -9,8 +10,8 @@ import torchvision.models.segmentation as segmentation
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # Caminhos para imagens e máscaras
-images_dir = 'c:/Users/João Vitor/Downloads/imgs/'
-masks_dir = 'c:/Users/João Vitor/Downloads/masks/'
+images_dir = ''
+masks_dir = ''
 
 # Definindo a transformação das imagens e máscaras com Data Augmentation
 transform = transforms.Compose([
@@ -60,7 +61,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 scheduler = ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
 
 # Função para treinamento contínuo integrada com seu código existente
-def treinamento_continuo(model, dataloader, criterion, optimizer, device, num_epocas_total):
+def treinamento_continuo(model, dataloader, criterion, optimizer, device, num_epocas_total, pausa_intervalo=10):
     melhor_modelo = None
     melhor_loss = float('inf')
     no_improvement = 0
@@ -99,6 +100,10 @@ def treinamento_continuo(model, dataloader, criterion, optimizer, device, num_ep
                 if no_improvement >= 3:  # Patience de 3 épocas
                     print("Early stopping triggered")
                     break
+            
+            # Adicionar pausa após cada época
+            print(f'Pausa de {pausa_intervalo} segundos para resfriamento...')
+            time.sleep(pausa_intervalo)
         
         # Carregar o melhor modelo após cada etapa de treinamento
         checkpoint_path = 'checkpoint/deeplabv3_checkpoint.pth'
@@ -111,4 +116,4 @@ def treinamento_continuo(model, dataloader, criterion, optimizer, device, num_ep
 
 # Exemplo de uso:
 num_epocas_total = 20  # Total de épocas desejado
-treinamento_continuo(model, dataloader, criterion, optimizer, device, num_epocas_total)
+treinamento_continuo(model, dataloader, criterion, optimizer, device, num_epocas_total, pausa_intervalo=300)
