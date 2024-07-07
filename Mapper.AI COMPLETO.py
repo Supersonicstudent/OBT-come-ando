@@ -13,9 +13,9 @@ import googlemaps
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
 
 # Caminhos para os arquivos de entrada e saída
-test_image_path = r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Local do engarrafamento.jpg'
-checkpoint_path = r'C:\Users\steve\OneDrive\Documents\trained_model.pth'
-output_segmented_path = r'C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\Segmentada_Salva.png'
+test_image_path = r'C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\Local do engarrafamento.jpg'
+checkpoint_path = r'C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\trained_model.pth'
+output_segmented_path = r'C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\Segmentada_Salva.png'
 
 # Transformações para a imagem de teste
 transform = transforms.Compose([
@@ -83,7 +83,7 @@ def suggest_changes(segmented_path):
     if junctions:
         for junction in junctions:
             improvements.append({
-                'location': [junction['lat'], junction['lng']],
+                'location': {'lat': junction['lat'], 'lng': junction['lng']},
                 'suggestion': 'adicionar um semáforo'
             })
         if len(congestion_coords) <= 2:
@@ -94,7 +94,7 @@ def suggest_changes(segmented_path):
     elif len(congestion_coords) > 0:
         for coord in congestion_coords:
             improvements.append({
-                'location': coord.tolist(),
+                'location': {'lat': coord[0], 'lng': coord[1]},
                 'suggestion': 'adicionar uma faixa extra'
             })
 
@@ -102,20 +102,38 @@ def suggest_changes(segmented_path):
 
 # Função para converter coordenadas em endereços usando Google Maps Reverse Geocoding
 def convert_coords_to_addresses(coords):
-    gmaps = googlemaps.Client(key='AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM')
+    gmaps = googlemaps.Client(key='AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM')  # Substitua com sua chave de API do Google Maps
     addresses = []
+    
     for coord in coords:
-        lat, lng = coord
-        reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), result_type='street_address')
-        if reverse_geocode_result:
-            address = reverse_geocode_result[0]['formatted_address']
-        else:
-            address = "Endereço não encontrado"
+        lat, lng = coord['lat'], coord['lng']
+        
+        try:
+            reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), result_type='street_address')
+            
+            if reverse_geocode_result:
+                address = reverse_geocode_result[0]['formatted_address']
+            else:
+                address = "Endereço não encontrado"
+        
+        except Exception as e:
+            address = f"Erro ao buscar endereço: {str(e)}"
+        
         addresses.append(address)
+    
     return addresses
+
+
+# Função para depuração que imprime as junções identificadas
+def print_junctions(junctions):
+    for junction in junctions:
+        print(f"Junção identificada: Latitude: {junction['lat']}, Longitude: {junction['lng']}")
 
 # Exemplo de uso
 start_address, end_address, image_save_message = get_congestion_addresses()
+junctions = identify_junctions(directions_result)
+print_junctions(junctions)  # Depuração para verificar junções
+
 improvements = suggest_changes(output_segmented_path)
 
 # Convertendo coordenadas para endereços
@@ -129,21 +147,32 @@ for improvement in improvements:
 def print_result(start_address, end_address, improvements):
     print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
     suggestions_dict = {}
+    
     for improvement in improvements:
         suggestion = improvement['suggestion']
         location = improvement['location']
         address = improvement.get('address', 'Coordenadas não puderam ser convertidas em endereço')
+        
         if suggestion not in suggestions_dict:
             suggestions_dict[suggestion] = []
+        
         if location:
             suggestions_dict[suggestion].append((location, address))
     
     for suggestion, locations in suggestions_dict.items():
-        if len(locations) == 1:
-            print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} nos seguintes locais: {locations[0][0]} que correspondem a {locations[0][1]}.')
+        if locations:
+            if len(locations) == 1:
+                if locations[0][0] is None:
+                    print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
+                else:
+                    loc = locations[0][0]
+                    addr = locations[0][1]
+                    print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} no seguinte local: Latitude: {loc["lat"]}, Longitude: {loc["lng"]} que corresponde a {addr}.')
+            else:
+                locations_text = ', '.join([f'Latitude: {loc["lat"]}, Longitude: {loc["lng"]} que corresponde a {addr}' for loc, addr in locations])
+                print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} nos seguintes locais: {locations_text}.')
         else:
-            locations_text = ', '.join([f'{loc[0]} que correspondem a {addr}' for loc, addr in locations])
-            print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} nos seguintes locais: {locations_text}.')
+            print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
 
 # Chamando a função para exibir o resultado
 print_result(start_address, end_address, improvements)

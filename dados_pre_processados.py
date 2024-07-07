@@ -3,16 +3,20 @@ import requests
 from datetime import datetime
 import pandas as pd 
 import json
-import streamlit as st
 from PIL import Image, ImageOps
 from io import BytesIO
+import warnings
+
+# Suprimir avisos do PyTorch
+warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
 
 # Configurações básicas do API de direções
-api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
+api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'  # Substitua pelo seu API key real
 gmaps = googlemaps.Client(key=api_key)
+
 # Request directions via driving
-origem_geral = "Ceilândia, Distrito Federal Brazil"  # Estabelece uma origem para ambos os API´s
-destino_geral = "Valparaíso de Goiás, Brazil" # Estabelece um destino para ambos os API´s
+origem_geral = "Brasília, Distrito Federal Brazil"  # Estabelece uma origem para ambos os APIs
+destino_geral = "Valparaíso de Goiás, Brazil"  # Estabelece um destino para ambos os APIs
 
 # Realize a solicitação de direções via condução
 directions_result = gmaps.directions(
@@ -30,8 +34,6 @@ for route in directions_result:
     for leg in route['legs']:
         total_duration = leg['duration']['value']
         total_duration_in_traffic = leg.get('duration_in_traffic', {}).get('value', total_duration)
-        print(f"Duração total: {total_duration / 60:.2f} minutos")
-        print(f"Duração total em tráfego: {total_duration_in_traffic / 60:.2f} minutos")
 
 # Calcular a diferença total de duração em tráfego
 traffic_difference = total_duration_in_traffic - total_duration
@@ -70,19 +72,23 @@ max_diference_value = max_diference[0]
 start_location_max = max_diference[1]
 end_location_max = max_diference[2]
 
-# Exibir o DataFrame
-print(f"Maior diferença de tempo: {max_diference_value:.2f} minutos")
-
 # Armazenando as localizações em variáveis para uso posterior
 start_location_var = start_location_max
 end_location_var = end_location_max
+
 # Converter coordenadas para endereços
 start_address = gmaps.reverse_geocode((start_location_var['lat'], start_location_var['lng']))[0]['formatted_address']
 end_address = gmaps.reverse_geocode((end_location_var['lat'], end_location_var['lng']))[0]['formatted_address']
 
-# Exibir os resultados
-print(f"Início do engarrafamento: {start_address}")
-print(f"Final do engarrafamento: {end_address}")
+# Identificar junctions
+def identify_junctions(directions_result):
+    junctions = []
+    # Percorre as etapas das direções para identificar junctions
+    for step in directions_result[0]['legs'][0]['steps']:
+        if 'maneuver' in step:
+            if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
+                junctions.append(step['end_location'])            
+    return junctions
 
 # Parte do mapa com o trajeto
 def get_directions(api_key, origin, destination):
@@ -103,13 +109,11 @@ def get_directions(api_key, origin, destination):
             routes = [route["overview_polyline"]["points"] for route in directions_data["routes"]]
             return routes
         else:
-            print(f"Erro na solicitação da rota: {directions_data['status']}")
             return None
     else:
-        print(f"Erro ao obter a rota. Código de status: {response.status_code}")
         return None
 
-def get_route_map(api_key, route,center, zoom, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
+def get_route_map(api_key, route, center, zoom, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
     static_map_url = "https://maps.googleapis.com/maps/api/staticmap?"
 
     static_map_params = {
@@ -126,7 +130,6 @@ def get_route_map(api_key, route,center, zoom, size="600x300", maptype="satellit
     if response.status_code == 200:
         return response.content
     else:
-        print(f"Erro ao obter a imagem do mapa. Código de status: {response.status_code}")
         return None
 
 def save_image(api_key, origin, destination, file_path, center, zoom):
@@ -137,13 +140,13 @@ def save_image(api_key, origin, destination, file_path, center, zoom):
         if route_map:
             with open(file_path, 'wb') as f:
                 f.write(route_map)
-            print(f"Imagem salva em: {file_path}")
+            return f"Imagem salva em: {file_path}"
         else:
-            print("Não foi possível obter o mapa do trajeto.")
+            return "Não foi possível obter o mapa do trajeto."
     else:
-        print("Não foi possível obter as rotas.")
+        return "Não foi possível obter as rotas."
+
 # Exemplo de uso:
-api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
 origin = start_address
 destination = end_address
 # Montando o nome do arquivo com formatação de string
@@ -151,7 +154,8 @@ nome_arquivo = "Local do engarrafamento.jpg"
 center = f"{start_location_var['lat']},{start_location_var['lng']}"
 zoom = 18
 file_path = r"C:\Users\steve\OneDrive\Área de Trabalho\OBT\OBT\OBT\{}".format(nome_arquivo)
-save_image(api_key, origin, destination, file_path, center, zoom)
+image_save_message = save_image(api_key, origin, destination, file_path, center, zoom)
+
 # Função para retornar os endereços
 def get_congestion_addresses():
-    return start_address, end_address
+    return start_address, end_address, image_save_message
