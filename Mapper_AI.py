@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.mode
 
 # Caminhos para os arquivos de entrada e saída
 test_image_path = r'C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\Local do engarrafamento.jpg'
-checkpoint_path = r'C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\trained_model.pth'
+checkpoint_path = r'C:\Users\steve\OneDrive\Área de Trabalho\trained_model.pth'
 output_segmented_path = r'C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\Segmentada_Salva.png'
 
 # Transformações para a imagem de teste
@@ -123,7 +123,7 @@ def convert_coords_to_addresses(coords):
     
     return addresses
 # Exemplo de uso
-start_address, end_address, image_save_message = get_congestion_addresses()
+start_address, end_address = get_congestion_addresses()
 junctions = identify_junctions(directions_result)
 
 improvements = suggest_changes(output_segmented_path)
