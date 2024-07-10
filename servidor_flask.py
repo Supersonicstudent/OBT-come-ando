@@ -1,27 +1,12 @@
 from flask import Flask, request
-from Mapper_AI import get_congestion_addresses, identify_junctions, directions_result, get_congestion_cords, suggest_changes, convert_coords_to_addresses, print_result
+from Mapper_AI import return_result, get_addresses
 
 app = Flask(__name__)
 
 @app.route('/process_data', methods=['POST'])
 def process_data():
-
-    # Identificar junções
-    start_location, end_location = get_congestion_cords()
-    junctions = identify_junctions(directions_result, start_location, end_location)
-    
-    # Sugerir mudanças com base na segmentação
-    improvements = suggest_changes(junctions)
-
-    # Converter coordenadas para endereços
-    for improvement in improvements:
-        if improvement['location']:
-            coords = improvement['location']
-            addresses = convert_coords_to_addresses([coords])
-            improvement['address'] = addresses[0]
-    
-    start_address, end_address = get_congestion_addresses()
-    result_message = print_result(start_address, end_address, improvements)
+    start_address, end_address, improvements = get_addresses()
+    result_message = return_result(start_address, end_address, improvements)
 
     return result_message
 

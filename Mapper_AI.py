@@ -137,36 +137,15 @@ for improvement in improvements:
 
 
 # Função para exibir o resultado final
-def print_result(start_address, end_address, improvements):
-    print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
-    suggestions_dict = {}
-    
-    for improvement in improvements:
-        suggestion = improvement['suggestion']
-        location = improvement['location']
-        address = improvement.get('address', 'Coordenadas não puderam ser convertidas em endereço')
-        
-        if suggestion not in suggestions_dict:
-            suggestions_dict[suggestion] = []
-        
-        if location:
-            suggestions_dict[suggestion].append((location, address))
-    
-    for suggestion, locations in suggestions_dict.items():
-        if locations:
-            if len(locations) == 1:
-                if locations[0][0] is None:
-                    print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
-                else:
-                    loc = locations[0][0]
-                    addr = locations[0][1]
-                    print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} no seguinte local: Latitude: {loc["lat"]}, Longitude: {loc["lng"]} que corresponde a {addr}.')
-            else:
-                locations_text = ', '.join([f'Latitude: {loc["lat"]}, Longitude: {loc["lng"]} que corresponde a {addr}' for loc, addr in locations])
-                print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} nos seguintes locais: {locations_text}.')
-        else:
-            print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
+def return_result (start_address, end_address, improvements):
+    engarrafemento_message = print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
+    if coords == False:
+        return "Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de adicionar uma faixa na referida via"
+    else:
+        return f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {improvements} nos seguintes locais: {coords} que corresponde a {addresses}.'
 
 # Chamando a função para exibir o resultado
 start_address, end_address = get_congestion_addresses()
-print_result(start_address, end_address, improvements)
+return_result(start_address, end_address, improvements)
+def get_addresses():
+    return start_address, end_address
