@@ -106,7 +106,7 @@ def convert_coords_to_addresses(coords):
     addresses = []
     
     for coord in coords:
-        lat, lng = coord['lat'], ['lng']
+        lat, lng = coord['lat'], coord['lng']
         
         try:
             reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), result_type='street_address')
@@ -116,12 +116,19 @@ def convert_coords_to_addresses(coords):
             else:
                 address = "Endereço não encontrado"
         
+        except googlemaps.exceptions.ApiError as api_err:
+            address = f"Erro na API do Google Maps: {str(api_err)}"
+        except googlemaps.exceptions.TransportError as transport_err:
+            address = f"Erro de transporte na solicitação: {str(transport_err)}"
+        except googlemaps.exceptions.Timeout as timeout_err:
+            address = f"Tempo esgotado na solicitação: {str(timeout_err)}"
         except Exception as e:
             address = f"Erro ao buscar endereço: {str(e)}"
         
         addresses.append(address)
     
     return addresses
+
 # Exemplo de uso
 start_address, end_address = get_congestion_addresses()
 junctions = identify_junctions(directions_result)
