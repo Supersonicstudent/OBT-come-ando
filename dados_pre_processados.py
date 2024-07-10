@@ -12,8 +12,8 @@ api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)
 
 # Request directions via driving
-origem_geral = "Ceilândia, Distrito Federal Brazil"  # Estabelece uma origem para ambos os APIs
-destino_geral = "Valparaíso de Goiás, Brazil"  # Estabelece um destino para ambos os APIs
+origem_geral = ""  # Estabelece uma origem para ambos os APIs
+destino_geral = ""  # Estabelece um destino para ambos os APIs
 
 # Realize a solicitação de direções via condução
 directions_result = gmaps.directions(
