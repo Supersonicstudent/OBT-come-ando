@@ -6,7 +6,7 @@ import json
 import streamlit as st
 from PIL import Image, ImageOps
 from io import BytesIO
-
+from servidor_flask import origem_geral, destino_geral
 # Configurações básicas do API de direções
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)

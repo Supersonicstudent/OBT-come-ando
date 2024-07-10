@@ -1,5 +1,5 @@
 from flask import Flask, request
-from teste import get_congestion_addresses, identify_junctions, directions_result, get_congestion_cords, suggest_changes, convert_coords_to_addresses, print_result
+from Mapper_AI import get_congestion_addresses, identify_junctions, directions_result, get_congestion_cords, suggest_changes, convert_coords_to_addresses, print_result
 
 app = Flask(__name__)
 
