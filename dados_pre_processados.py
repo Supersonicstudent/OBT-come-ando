@@ -167,5 +167,7 @@ file_path = r"C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\{}".form
 save_image(api_key, origin, destination, file_path, center, zoom)
 
 # Função para retornar os endereços
+def get_congestion_cords():
+    return start_location_var, end_location_var
 def get_congestion_addresses():
     return start_address, end_address

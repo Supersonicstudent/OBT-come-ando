@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import torchvision.models.segmentation as segmentation
 import numpy as np
 import warnings
-from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses
+from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses, get_congestion_cords
 import googlemaps
 
 # Suprimindo avisos de output indesejados
@@ -70,6 +70,7 @@ def display_images(original_image_path, segmented_image):
 # Exemplo de uso
 display_images(test_image_path, segmented_output)
 improvements = []
+
 # Função para sugerir mudanças com base na segmentação
 def suggest_changes(junctions):
     if junctions:
@@ -78,18 +79,12 @@ def suggest_changes(junctions):
                 'location': {'lat': junction['lat'], 'lng': junction['lng']},
                 'suggestion': 'adicionar um semáforo'
             })
-        if len(congestion_coords) <= 2:
-            improvements.append({
-                'location': None,
-                'suggestion': 'adicionar uma faixa extra'
-            })
-    elif len(congestion_coords) > 0:
-        for coord in congestion_coords:
-            improvements.append({
-                'location': {'lat': coord[0], 'lng': coord[1]},
-                'suggestion': 'adicionar uma faixa extra'
-            })
-
+    else:
+        improvements.append({
+            'location': None,
+            'suggestion': 'adicionar faixa'
+        })
+        
     return improvements
 
 # Função para converter coordenadas em endereços usando Google Maps Reverse Geocoding
@@ -98,15 +93,24 @@ def convert_coords_to_addresses(coords):
     addresses = []
     
     for coord in coords:
-        lat, lng = coord['lat'], coord['lng']
+        lat = float(coord['lat'])
+        lng = float(coord['lng'])
         
         try:
             reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), result_type='street_address')
+            print(f"Reverse Geocode Result for ({lat}, {lng}): {reverse_geocode_result}")  # Adicionando print para depuração
             
             if reverse_geocode_result:
                 address = reverse_geocode_result[0]['formatted_address']
             else:
-                address = "Endereço não encontrado"
+                # Tentativa adicional com diferentes parâmetros
+                reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), location_type='ROOFTOP')
+                print(f"Alternate Reverse Geocode Result for ({lat}, {lng}): {reverse_geocode_result}")  # Print adicional
+                
+                if reverse_geocode_result:
+                    address = reverse_geocode_result[0]['formatted_address']
+                else:
+                    address = "Endereço não encontrado"
         
         except googlemaps.exceptions.ApiError as api_err:
             address = f"Erro na API do Google Maps: {str(api_err)}"
@@ -122,18 +126,24 @@ def convert_coords_to_addresses(coords):
     return addresses
 
 # Exemplo de uso
-start_location, end_location = get_congestion_addresses()
-junctions = identify_junctions(directions_result, start_location, end_location)
+start_location, end_location = get_congestion_cords()
+print(f"Start location: {start_location}")
+print(f"End location: {end_location}")
 
-improvements2 = suggest_changes(junctions)
+junctions = identify_junctions(directions_result, start_location, end_location)
+print(f"Junctions: {junctions}")
+
+improvements = suggest_changes(junctions)
+print(f"Improvements: {improvements}")
 
 # Convertendo coordenadas para endereços
-for improvement in improvements2:
+for improvement in improvements:
     if improvement['location']:
         coords = improvement['location']
         addresses = convert_coords_to_addresses([coords])
         improvement['address'] = addresses[0]
 print("'Até aqui estou bem' - computador")
+
 # Função para exibir o resultado final
 def print_result(start_address, end_address, improvements):
     print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
@@ -166,4 +176,5 @@ def print_result(start_address, end_address, improvements):
             print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
 
 # Chamando a função para exibir o resultado
-print_result(improvements2)
+start_address, end_address = get_congestion_addresses()
+print_result(start_address, end_address, improvements)
