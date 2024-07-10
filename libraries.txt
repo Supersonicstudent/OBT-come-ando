@@ -1,0 +1,23 @@
+# Criação de um arquivo .txt com as bibliotecas mencionadas
+libraries = """
+import googlemaps 
+import requests
+from datetime import datetime
+import pandas as pd 
+from PIL import Image, ImageOps
+import warnings
+import os
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
+import matplotlib.pyplot as plt
+import torchvision.models.segmentation as segmentation
+import numpy as np
+import warnings
+from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses
+import googlemaps
+"""
+
+# Salvando o conteúdo no arquivo libraries.txt
+with open("/mnt/data/libraries.txt", "w") as file:
+    file.write(libraries)
