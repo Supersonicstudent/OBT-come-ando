@@ -8,6 +8,7 @@ import numpy as np
 import warnings
 from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses, get_congestion_cords
 import googlemaps
+import gmaps
 
 # Suprimindo avisos de output indesejados
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
@@ -97,15 +98,12 @@ def convert_coords_to_addresses(coords):
         lng = float(coord['lng'])
         
         try:
-            reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), result_type='street_address')
-            print(f"Reverse Geocode Result for ({lat}, {lng}): {reverse_geocode_result}")  # Adicionando print para depuração
-            
+            reverse_geocode_result = gmaps.reverse_geocode((coord['lat'],coord['lng']))
             if reverse_geocode_result:
                 address = reverse_geocode_result[0]['formatted_address']
             else:
                 # Tentativa adicional com diferentes parâmetros
                 reverse_geocode_result = gmaps.reverse_geocode(latlng=(lat, lng), location_type='ROOFTOP')
-                print(f"Alternate Reverse Geocode Result for ({lat}, {lng}): {reverse_geocode_result}")  # Print adicional
                 
                 if reverse_geocode_result:
                     address = reverse_geocode_result[0]['formatted_address']
@@ -127,14 +125,8 @@ def convert_coords_to_addresses(coords):
 
 # Exemplo de uso
 start_location, end_location = get_congestion_cords()
-print(f"Start location: {start_location}")
-print(f"End location: {end_location}")
-
 junctions = identify_junctions(directions_result, start_location, end_location)
-print(f"Junctions: {junctions}")
-
 improvements = suggest_changes(junctions)
-print(f"Improvements: {improvements}")
 
 # Convertendo coordenadas para endereços
 for improvement in improvements:
@@ -142,7 +134,7 @@ for improvement in improvements:
         coords = improvement['location']
         addresses = convert_coords_to_addresses([coords])
         improvement['address'] = addresses[0]
-print("'Até aqui estou bem' - computador")
+
 
 # Função para exibir o resultado final
 def print_result(start_address, end_address, improvements):

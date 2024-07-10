@@ -71,9 +71,6 @@ max_diference_value = max_diference[0]
 start_location_max = max_diference[1]
 end_location_max = max_diference[2]
 
-# Exibir o DataFrame
-print(f"Maior diferença de tempo: {max_diference_value:.2f} minutos")
-
 # Armazenando as localizações em variáveis para uso posterior
 start_location_var = start_location_max
 end_location_var = end_location_max
@@ -81,10 +78,6 @@ end_location_var = end_location_max
 # Converter coordenadas para endereços
 start_address = gmaps.reverse_geocode((start_location_var['lat'], start_location_var['lng']))[0]['formatted_address']
 end_address = gmaps.reverse_geocode((end_location_var['lat'], end_location_var['lng']))[0]['formatted_address']
-
-# Exibir os resultados
-print(f"Início do engarrafamento: {start_address}")
-print(f"Final do engarrafamento: {end_address}")
 
 def identify_junctions(directions_result, start_location, end_location):
     junctions = []
@@ -96,8 +89,7 @@ def identify_junctions(directions_result, start_location, end_location):
         if recording and 'maneuver' in step:
             if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
                 junctions.append(step['end_location'])
-        
-    print(junctions)           
+                  
     return junctions
 
 # Corrigido para passar directions_result em vez de data
