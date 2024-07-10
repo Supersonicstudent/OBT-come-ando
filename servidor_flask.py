@@ -5,8 +5,6 @@ app = Flask(__name__)
 
 @app.route('/process_data', methods=['POST'])
 def process_data():
-    origem_geral = request.form.get('origem_geral')
-    destino_geral = request.form.get('destino_geral')
 
     # Identificar junções
     start_location, end_location = get_congestion_cords()
@@ -29,3 +27,6 @@ def process_data():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+origem_geral = request.form.get('origem_geral')
+destino_geral = request.form.get('destino_geral')

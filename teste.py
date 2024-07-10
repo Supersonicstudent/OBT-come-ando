@@ -6,14 +6,11 @@ import json
 import streamlit as st
 from PIL import Image, ImageOps
 from io import BytesIO
+from servidor_flask import origem_geral, destino_geral
 
 # Configurações básicas do API de direções
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)
-
-# Request directions via driving
-origem_geral = "Ceilândia, Distrito Federal, Brazil"  # Estabelece uma origem para ambos os APIs
-destino_geral = "Valparaíso de Goiás, Brazil"  # Estabelece um destino para ambos os APIs
 
 # Realize a solicitação de direções via condução
 directions_result = gmaps.directions(
