@@ -12,10 +12,11 @@ api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)
 
 # Request directions via driving
-origem_geral = "Brasília, Distrito Federal Brazil"  # Estabelece uma origem para ambos os API´s
-destino_geral = "Valparaíso de Goiás, Brazil" # Estabelece um destino para ambos os API´s
+origem_geral = "Ceilândia, Distrito Federal Brazil"  # Estabelece uma origem para ambos os APIs
+destino_geral = "Valparaíso de Goiás, Brazil"  # Estabelece um destino para ambos os APIs
+
 # Realize a solicitação de direções via condução
-directions_result = gmaps.directions (
+directions_result = gmaps.directions(
     origem_geral,
     destino_geral,
     mode="driving",
@@ -24,6 +25,7 @@ directions_result = gmaps.directions (
 
 # Converter o resultado da solicitação de direções para um DataFrame do pandas
 data = pd.json_normalize(directions_result, 'legs')
+
 # Obter a duração total e a duração em tráfego
 for route in directions_result:
     for leg in route['legs']:
@@ -31,12 +33,15 @@ for route in directions_result:
         total_duration_in_traffic = leg.get('duration_in_traffic', {}).get('value', total_duration)
         print(f"Duração total: {total_duration / 60:.2f} minutos")
         print(f"Duração total em tráfego: {total_duration_in_traffic / 60:.2f} minutos")
+
 # Calcular a diferença total de duração em tráfego
 traffic_difference = total_duration_in_traffic - total_duration
+
 # Acessar os dados de 'duration' dentro do DataFrame e calcular a duração em tráfego para cada passo
 steps_data = []
 diference_of_times_list = []
 step_durations = []
+
 for index, row in data.iterrows():
     total_step_duration = sum(step['duration']['value'] for step in row['steps'])
     
@@ -56,50 +61,47 @@ for index, row in data.iterrows():
     
         diference_of_times = step_duration_in_traffic / 60 - step_duration / 60
         diference_of_times_list.append((diference_of_times, step['start_location'], step['end_location']))
-    
+
 # Convertendo os dados para um DataFrame
 steps_df = pd.DataFrame(steps_data)
+
 # Encontrar a maior diferença e armazenar as localizações
 max_diference = max(diference_of_times_list, key=lambda x: x[0])
 max_diference_value = max_diference[0]
 start_location_max = max_diference[1]
 end_location_max = max_diference[2]
+
 # Exibir o DataFrame
 print(f"Maior diferença de tempo: {max_diference_value:.2f} minutos")
+
 # Armazenando as localizações em variáveis para uso posterior
 start_location_var = start_location_max
 end_location_var = end_location_max
+
 # Converter coordenadas para endereços
 start_address = gmaps.reverse_geocode((start_location_var['lat'], start_location_var['lng']))[0]['formatted_address']
 end_address = gmaps.reverse_geocode((end_location_var['lat'], end_location_var['lng']))[0]['formatted_address']
+
 # Exibir os resultados
 print(f"Início do engarrafamento: {start_address}")
 print(f"Final do engarrafamento: {end_address}")
 
 def identify_junctions(directions_result, start_location, end_location):
     junctions = []
-    start_found = False
+    recording = False
 
-    # Percorre as etapas das direções para identificar junctions
     for step in directions_result[0]['legs'][0]['steps']:
-        if not start_found:
-            if step['start_location'] == start_location:
-                start_found = True
-
-        if start_found:
-            if 'maneuver' in step:
-                if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
-                    junctions.append(step['end_location'])
-            
-            if step['end_location'] == end_location:
-                break
-
+        if step['start_location'] == start_location:
+            recording = True
+        if recording and 'maneuver' in step:
+            if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
+                junctions.append(step['end_location'])
+        
+    print(junctions)           
     return junctions
 
-# Identificar junções dentro do trecho de maior diferença de tempo
-junctions = identify_junctions(directions_result, start_location_var, end_location_var)
-print("Junções identificadas:", junctions)
-
+# Corrigido para passar directions_result em vez de data
+identify_junctions(directions_result, start_location_var, end_location_var)
 
 # Parte do mapa com o trajeto
 def get_directions(api_key, origin, destination):
@@ -123,7 +125,8 @@ def get_directions(api_key, origin, destination):
     else:
         print(f"Erro ao obter a rota. Código de status: {response.status_code}")
         return None
-def get_route_map(api_key, route,center, zoom, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
+
+def get_route_map(api_key, route, center, zoom, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
     static_map_url = "https://maps.googleapis.com/maps/api/staticmap?"
     static_map_params = {
         "size": size,
@@ -139,6 +142,7 @@ def get_route_map(api_key, route,center, zoom, size="600x300", maptype="satellit
     else:
         print(f"Erro ao obter a imagem do mapa. Código de status: {response.status_code}")
         return None
+
 def save_image(api_key, origin, destination, file_path, center, zoom):
     routes = get_directions(api_key, origin, destination)
     
@@ -152,16 +156,16 @@ def save_image(api_key, origin, destination, file_path, center, zoom):
             print("Não foi possível obter o mapa do trajeto.")
     else:
         print("Não foi possível obter as rotas.")
+
 # Exemplo de uso:
-api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
 origin = start_address
 destination = end_address
-# Montando o nome do arquivo com formatação de string
 nome_arquivo = "Local do engarrafamento.jpg"
 center = f"{start_location_var['lat']},{start_location_var['lng']}"
 zoom = 18
 file_path = r"C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\{}".format(nome_arquivo)
 save_image(api_key, origin, destination, file_path, center, zoom)
+
 # Função para retornar os endereços
 def get_congestion_addresses():
     return start_address, end_address

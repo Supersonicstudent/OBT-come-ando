@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import torchvision.models.segmentation as segmentation
 import numpy as np
 import warnings
-from teste2 import identify_junctions, directions_result, get_congestion_addresses
+from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses
 import googlemaps
 
 # Suprimindo avisos de output indesejados
@@ -69,17 +69,9 @@ def display_images(original_image_path, segmented_image):
 
 # Exemplo de uso
 display_images(test_image_path, segmented_output)
-
+improvements = []
 # Função para sugerir mudanças com base na segmentação
-def suggest_changes(segmented_path):
-    segmentada = Image.open(segmented_path).convert('L')
-    segmentada = np.array(segmentada)
-    congestion_coords = np.argwhere(segmentada > 0.6)
-    improvements = []
-    
-    # Identificar junções com base no resultado das direções
-    junctions = identify_junctions(directions_result, start_location, end_location)
-    
+def suggest_changes(junctions):
     if junctions:
         for junction in junctions:
             improvements.append({
@@ -133,15 +125,15 @@ def convert_coords_to_addresses(coords):
 start_location, end_location = get_congestion_addresses()
 junctions = identify_junctions(directions_result, start_location, end_location)
 
-improvements = suggest_changes(output_segmented_path)
+improvements2 = suggest_changes(junctions)
 
 # Convertendo coordenadas para endereços
-for improvement in improvements:
+for improvement in improvements2:
     if improvement['location']:
         coords = improvement['location']
         addresses = convert_coords_to_addresses([coords])
         improvement['address'] = addresses[0]
-
+print("'Até aqui estou bem' - computador")
 # Função para exibir o resultado final
 def print_result(start_address, end_address, improvements):
     print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
@@ -174,4 +166,4 @@ def print_result(start_address, end_address, improvements):
             print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
 
 # Chamando a função para exibir o resultado
-print_result(improvements)
+print_result(improvements2)

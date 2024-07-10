@@ -1,12 +1,21 @@
-import pandas as pd
-from datetime import datetime
-import googlemaps
+import googlemaps 
 import requests
+from datetime import datetime
+import pandas as pd 
+import json
+import streamlit as st
+from PIL import Image, ImageOps
+from io import BytesIO
 
-# Solicitação de direções via condução
-gmaps = googlemaps.Client(key='AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM')
-origem_geral = "Ceilândia, Distrito Federal Brazil"
-destino_geral = "Valparaíso de Goiás, Brazil"
+# Configurações básicas do API de direções
+api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
+gmaps = googlemaps.Client(key=api_key)
+
+# Request directions via driving
+origem_geral = "Ceilândia, Distrito Federal Brazil"  # Estabelece uma origem para ambos os APIs
+destino_geral = "Valparaíso de Goiás, Brazil"  # Estabelece um destino para ambos os APIs
+
+# Realize a solicitação de direções via condução
 directions_result = gmaps.directions(
     origem_geral,
     destino_geral,
@@ -35,12 +44,12 @@ step_durations = []
 
 for index, row in data.iterrows():
     total_step_duration = sum(step['duration']['value'] for step in row['steps'])
-
+    
     for step in row['steps']:
         step_duration = step['duration']['value']
         proportion_of_total = step_duration / total_step_duration
         step_duration_in_traffic = step_duration + (proportion_of_total * traffic_difference)
-
+        
         step_data = {
             'start_location': step['start_location'],
             'end_location': step['end_location'],
@@ -49,7 +58,7 @@ for index, row in data.iterrows():
         }
         steps_data.append(step_data)
         step_durations.append((step_duration, step_duration_in_traffic))
-
+    
         diference_of_times = step_duration_in_traffic / 60 - step_duration / 60
         diference_of_times_list.append((diference_of_times, step['start_location'], step['end_location']))
 
@@ -79,27 +88,20 @@ print(f"Final do engarrafamento: {end_address}")
 
 def identify_junctions(directions_result, start_location, end_location):
     junctions = []
-    start_found = False
+    recording = False
 
-    # Percorre as etapas das direções para identificar junctions
     for step in directions_result[0]['legs'][0]['steps']:
-        if not start_found:
-            if step['start_location'] == start_location:
-                start_found = True
-
-        if start_found:
-            if 'maneuver' in step:
-                if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
-                    junctions.append(step['end_location'])
-            
-            if step['end_location'] == end_location:
-                break
-
+        if step['start_location'] == start_location:
+            recording = True
+        if recording and 'maneuver' in step:
+            if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
+                junctions.append(step['end_location'])
+        
+           
     return junctions
 
-# Identificar junções dentro do trecho de maior diferença de tempo
-junctions = identify_junctions(directions_result, start_location_var, end_location_var)
-print("Junções identificadas:", junctions)
+# Corrigido para passar directions_result em vez de data
+identify_junctions(directions_result, start_location_var, end_location_var)
 
 # Parte do mapa com o trajeto
 def get_directions(api_key, origin, destination):
@@ -123,7 +125,8 @@ def get_directions(api_key, origin, destination):
     else:
         print(f"Erro ao obter a rota. Código de status: {response.status_code}")
         return None
-def get_route_map(api_key, route,center, zoom, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
+
+def get_route_map(api_key, route, center, zoom, size="600x300", maptype="satellite", weight=2, color="0x0000FF"):
     static_map_url = "https://maps.googleapis.com/maps/api/staticmap?"
     static_map_params = {
         "size": size,
@@ -139,6 +142,7 @@ def get_route_map(api_key, route,center, zoom, size="600x300", maptype="satellit
     else:
         print(f"Erro ao obter a imagem do mapa. Código de status: {response.status_code}")
         return None
+
 def save_image(api_key, origin, destination, file_path, center, zoom):
     routes = get_directions(api_key, origin, destination)
     
@@ -152,16 +156,16 @@ def save_image(api_key, origin, destination, file_path, center, zoom):
             print("Não foi possível obter o mapa do trajeto.")
     else:
         print("Não foi possível obter as rotas.")
+
 # Exemplo de uso:
-api_key = "AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM"
 origin = start_address
 destination = end_address
-# Montando o nome do arquivo com formatação de string
 nome_arquivo = "Local do engarrafamento.jpg"
 center = f"{start_location_var['lat']},{start_location_var['lng']}"
 zoom = 18
 file_path = r"C:\Users\steve\OneDrive\Documents\Mapper.AI\OBT-come-ando\{}".format(nome_arquivo)
 save_image(api_key, origin, destination, file_path, center, zoom)
+
 # Função para retornar os endereços
 def get_congestion_addresses():
     return start_address, end_address
