@@ -1,21 +1,17 @@
-import googlemaps 
-import requests
+import googlemaps
 from datetime import datetime
-import pandas as pd 
-import json
-import streamlit as st
-from PIL import Image, ImageOps
-from io import BytesIO
+import pandas as pd
+import requests
 
-# Configurações básicas do API de direções
-api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
-gmaps = googlemaps.Client(key=api_key)
+# Inicializar a API do Google Maps
+gmaps = googlemaps.Client(key='AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM')
 
-# Request directions via driving
-origem_geral = "Brasília, Distrito Federal Brazil"  # Estabelece uma origem para ambos os API´s
-destino_geral = "Valparaíso de Goiás, Brazil" # Estabelece um destino para ambos os API´s
-# Realize a solicitação de direções via condução
-directions_result = gmaps.directions (
+# Definir origem e destino
+origem_geral = "Ceilândia, Distrito Federal Brazil"
+destino_geral = "Valparaíso de Goiás, Brazil"
+
+# Solicitar direções via condução
+directions_result = gmaps.directions(
     origem_geral,
     destino_geral,
     mode="driving",
@@ -24,6 +20,7 @@ directions_result = gmaps.directions (
 
 # Converter o resultado da solicitação de direções para um DataFrame do pandas
 data = pd.json_normalize(directions_result, 'legs')
+
 # Obter a duração total e a duração em tráfego
 for route in directions_result:
     for leg in route['legs']:
@@ -31,8 +28,10 @@ for route in directions_result:
         total_duration_in_traffic = leg.get('duration_in_traffic', {}).get('value', total_duration)
         print(f"Duração total: {total_duration / 60:.2f} minutos")
         print(f"Duração total em tráfego: {total_duration_in_traffic / 60:.2f} minutos")
+
 # Calcular a diferença total de duração em tráfego
 traffic_difference = total_duration_in_traffic - total_duration
+
 # Acessar os dados de 'duration' dentro do DataFrame e calcular a duração em tráfego para cada passo
 steps_data = []
 diference_of_times_list = []
@@ -56,51 +55,57 @@ for index, row in data.iterrows():
     
         diference_of_times = step_duration_in_traffic / 60 - step_duration / 60
         diference_of_times_list.append((diference_of_times, step['start_location'], step['end_location']))
-    
+
 # Convertendo os dados para um DataFrame
 steps_df = pd.DataFrame(steps_data)
+
 # Encontrar a maior diferença e armazenar as localizações
 max_diference = max(diference_of_times_list, key=lambda x: x[0])
 max_diference_value = max_diference[0]
 start_location_max = max_diference[1]
 end_location_max = max_diference[2]
+
 # Exibir o DataFrame
 print(f"Maior diferença de tempo: {max_diference_value:.2f} minutos")
+
 # Armazenando as localizações em variáveis para uso posterior
 start_location_var = start_location_max
 end_location_var = end_location_max
+
 # Converter coordenadas para endereços
 start_address = gmaps.reverse_geocode((start_location_var['lat'], start_location_var['lng']))[0]['formatted_address']
 end_address = gmaps.reverse_geocode((end_location_var['lat'], end_location_var['lng']))[0]['formatted_address']
+
 # Exibir os resultados
 print(f"Início do engarrafamento: {start_address}")
 print(f"Final do engarrafamento: {end_address}")
 
-def identify_junctions(directions_result, start_location, end_location):
+def identify_junctions(directions_result, start_address, end_address):
     junctions = []
     start_found = False
+    
+    # Converter os endereços para coordenadas
+    start_location = gmaps.geocode(start_address)[0]['geometry']['location']
+    end_location = gmaps.geocode(end_address)[0]['geometry']['location']
 
     # Percorre as etapas das direções para identificar junctions
     for step in directions_result[0]['legs'][0]['steps']:
-        if not start_found:
-            if step['start_location'] == start_location:
-                start_found = True
-
+        if step['start_location'] == start_location:
+            start_found = True
+        
         if start_found:
             if 'maneuver' in step:
                 if 'roundabout' in step['maneuver'] or 'merge' in step['maneuver'] or 'fork' in step['maneuver']:
                     junctions.append(step['end_location'])
-            
-            if step['end_location'] == end_location:
-                break
+        
+        if step['end_location'] == end_location:
+            break
 
     return junctions
 
-# Identificar junções dentro do trecho de maior diferença de tempo
-junctions = identify_junctions(directions_result, start_location_var, end_location_var)
-print("Junções identificadas:", junctions)
-
-
+# Identificar as junções no percurso específico
+junctions = identify_junctions(directions_result, start_address, end_address)
+print(junctions)
 # Parte do mapa com o trajeto
 def get_directions(api_key, origin, destination):
     directions_url = "https://maps.googleapis.com/maps/api/directions/json?"

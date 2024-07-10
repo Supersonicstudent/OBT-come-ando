@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import torchvision.models.segmentation as segmentation
 import numpy as np
 import warnings
-from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses
+from teste2 import identify_junctions, directions_result, get_congestion_addresses
 import googlemaps
 
 # Suprimindo avisos de output indesejados
@@ -78,7 +78,7 @@ def suggest_changes(segmented_path):
     improvements = []
     
     # Identificar junções com base no resultado das direções
-    junctions = identify_junctions(directions_result)
+    junctions = identify_junctions(directions_result, start_location, end_location)
     
     if junctions:
         for junction in junctions:
@@ -130,8 +130,8 @@ def convert_coords_to_addresses(coords):
     return addresses
 
 # Exemplo de uso
-start_address, end_address = get_congestion_addresses()
-junctions = identify_junctions(directions_result)
+start_location, end_location = get_congestion_addresses()
+junctions = identify_junctions(directions_result, start_location, end_location)
 
 improvements = suggest_changes(output_segmented_path)
 
@@ -174,4 +174,4 @@ def print_result(start_address, end_address, improvements):
             print(f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.')
 
 # Chamando a função para exibir o resultado
-print_result(start_address, end_address, improvements)
+print_result(improvements)
