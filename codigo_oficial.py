@@ -326,7 +326,7 @@ def process_data():
     return result_message
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host= '0.0.0.0', port=8000)
 
 origem_geral = request.form.get('origem_geral')
 destino_geral = request.form.get('destino_geral')

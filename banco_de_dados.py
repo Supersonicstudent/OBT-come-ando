@@ -104,4 +104,4 @@ def login():
 if __name__ == '__main__':
     with app.app_context():  # Adiciona o contexto da aplicação
         db.create_all()  # Cria as tabelas
-    app.run(debug=True)
+    app.run(debug=True, host= '0.0.0.0', port=8001)
