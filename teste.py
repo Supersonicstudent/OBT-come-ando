@@ -6,18 +6,21 @@ import json
 import streamlit as st
 from PIL import Image, ImageOps
 from io import BytesIO
-from servidor_flask import origem_geral, destino_geral
 
 # Configurações básicas do API de direções
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)
+
+# Request directions via driving
+origem_geral = "Ceilândia, Distrito Federal, Brazil"  # Estabelece uma origem para ambos os APIs
+destino_geral = "Valparaíso de Goiás, Brazil"  # Estabelece um destino para ambos os APIs
 
 # Realize a solicitação de direções via condução
 directions_result = gmaps.directions(
     origem_geral,
     destino_geral,
     mode="driving",
-    departure_time=datetime(year=2024, month=7, day=10, hour=19, minute=0).timestamp()
+    departure_time=datetime(year=2024, month=7, day=30, hour=19, minute=0).timestamp()
 )
 
 # Converter o resultado da solicitação de direções para um DataFrame do pandas
@@ -161,7 +164,6 @@ def get_congestion_cords():
 def get_congestion_addresses():
     return start_address, end_address
 
-
 import os
 import torch
 import torchvision.transforms as transforms
@@ -291,47 +293,40 @@ start_location, end_location = get_congestion_cords()
 junctions = identify_junctions(directions_result, start_location, end_location)
 improvements = suggest_changes(junctions)
 
-# Convertendo coordenadas para endereços
-for improvement in improvements:
-    if improvement['location']:
-        coords = improvement['location']
-        addresses = convert_coords_to_addresses([coords])
-        improvement['address'] = addresses[0]
-
-
-# Função para retornar o resultado final como uma string
-def print_result(start_address, end_address, improvements):
-    result_message = f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.\n'
-    suggestions_dict = {}
-    
+# Função para exibir o resultado final
+def return_result (start_address, end_address, improvements,coords):
+    # Convertendo coordenadas para endereços
     for improvement in improvements:
-        suggestion = improvement['suggestion']
-        location = improvement['location']
-        address = improvement.get('address', 'Coordenadas não puderam ser convertidas em endereço')
-        
-        if suggestion not in suggestions_dict:
-            suggestions_dict[suggestion] = []
-        
-        if location:
-            suggestions_dict[suggestion].append((location, address))
-    
-    for suggestion, locations in suggestions_dict.items():
-        if locations:
-            if len(locations) == 1:
-                if locations[0][0] is None:
-                    result_message += f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.\n'
-                else:
-                    loc = locations[0][0]
-                    addr = locations[0][1]
-                    result_message += f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} no seguinte local: Latitude: {loc["lat"]}, Longitude: {loc["lng"]} que corresponde a {addr}.\n'
-            else:
-                locations_text = ', '.join([f'Latitude: {loc["lat"]}, Longitude: {loc["lng"]} que corresponde a {addr}' for loc, addr in locations])
-                result_message += f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion} nos seguintes locais: {locations_text}.\n'
-        else:
-            result_message += f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {suggestion}.\n'
-    
+       if improvement['location']:
+         coords = improvement['location']
+         addresses = convert_coords_to_addresses([coords])
+         improvement['address'] = addresses[0]
+
+    engarrafemento_message = print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
+    if coords == False:
+        return "Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de adicionar uma faixa na referida via"
+    else:
+        sugestao = improvement['suggestion']
+        return f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {sugestao} nos seguintes locais: {coords} que corresponde a {addresses}.'
+# Chamando a função para exibir o resultado
+coords = []
+start_address, end_address = get_congestion_addresses()
+return_result(start_address, end_address, improvements, coords)
+def get_addresses():
+    return start_address, end_address, improvements
+
+from flask import Flask, request
+app = Flask(__name__)
+
+@app.route('/process_data', methods=['POST'])
+def process_data():
+    start_address, end_address, improvements = get_addresses()
+    result_message = return_result(start_address, end_address, improvements, coords)
+
     return result_message
 
-# Chamando a função para exibir o resultado
-start_address, end_address = get_congestion_addresses()
-print_result(start_address, end_address, improvements)
+if __name__ == '__main__':
+    app.run(debug=True)
+
+origem_geral = request.form.get('origem_geral')
+destino_geral = request.form.get('destino_geral')

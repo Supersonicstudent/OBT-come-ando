@@ -1,6 +1,4 @@
 from flask import Flask, request
-from Mapper_AI import return_result, get_addresses
-
 app = Flask(__name__)
 
 @app.route('/process_data', methods=['POST'])

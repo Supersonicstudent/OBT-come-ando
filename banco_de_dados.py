@@ -49,7 +49,7 @@ def get_usuario(id):
     usuario = Usuario.query.get(id)
     if usuario is None:
         return jsonify({'message': 'Usuário não encontrado!'}), 404
-    return jsonify({'id': usuario.id, 'nome': usuario.nome, 'email': usuario.email, 'cidade': usuario.cidade})
+    return jsonify({'id': usuario.id, 'nome': usuario.nome, 'email': usuario.email, 'cidade': usuario.cidade, 'senha': usuario.senha})
 
 @app.route('/add_post', methods=['POST'])
 def add_post():
