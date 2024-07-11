@@ -1,8 +1,3 @@
-from flask import Flask, request
-app = Flask(__name__)
-origem_geral = request.form.get('origem_geral')
-destino_geral = request.form.get('destino_geral')
-
 import googlemaps 
 import requests
 from datetime import datetime
@@ -15,6 +10,10 @@ from io import BytesIO
 # Configurações básicas do API de direções
 api_key = 'AIzaSyDdTREWbb7NJRvkBjReLpRdgNIyqJeLcbM'
 gmaps = googlemaps.Client(key=api_key)
+
+# Request directions via driving
+origem_geral = ""  # Estabelece uma origem para ambos os APIs
+destino_geral = ""  # Estabelece um destino para ambos os APIs
 
 # Realize a solicitação de direções via condução
 directions_result = gmaps.directions(
@@ -316,6 +315,9 @@ return_result(start_address, end_address, improvements, coords)
 def get_addresses():
     return start_address, end_address, improvements
 
+from flask import Flask, request
+app = Flask(__name__)
+
 @app.route('/process_data', methods=['POST'])
 def process_data():
     start_address, end_address, improvements = get_addresses()
@@ -325,3 +327,6 @@ def process_data():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+origem_geral = request.form.get('origem_geral')
+destino_geral = request.form.get('destino_geral')

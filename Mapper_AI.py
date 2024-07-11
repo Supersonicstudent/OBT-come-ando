@@ -1,3 +1,4 @@
+
 import os
 import torch
 import torchvision.transforms as transforms
@@ -6,10 +7,9 @@ import matplotlib.pyplot as plt
 import torchvision.models.segmentation as segmentation
 import numpy as np
 import warnings
-from dados_pre_processados import identify_junctions, directions_result, get_congestion_addresses, get_congestion_cords
 import googlemaps
 import gmaps
-
+from dados_pre_processados import get_congestion_cords, identify_junctions, directions_result, get_congestion_addresses
 # Suprimindo avisos de output indesejados
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
 
@@ -128,24 +128,29 @@ start_location, end_location = get_congestion_cords()
 junctions = identify_junctions(directions_result, start_location, end_location)
 improvements = suggest_changes(junctions)
 
-# Convertendo coordenadas para endereços
-for improvement in improvements:
-    if improvement['location']:
-        coords = improvement['location']
-        addresses = convert_coords_to_addresses([coords])
-        improvement['address'] = addresses[0]
-
-
 # Função para exibir o resultado final
-def return_result (start_address, end_address, improvements):
-    engarrafemento_message = print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
-    if coords == False:
-        return "Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de adicionar uma faixa na referida via"
-    else:
-        return f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {improvements} nos seguintes locais: {coords} que corresponde a {addresses}.'
+def return_result (start_address, end_address, improvements, coords):
+    # Convertendo coordenadas para endereços
+    for improvement in improvements:
+       if improvement['location']:
+         coords = improvement['location']
+         addresses = convert_coords_to_addresses([coords])
+         improvement['address'] = addresses[0]
 
+    print(f'O engarrafamento na viagem especificada começa no trecho: {start_address} e termina em: {end_address}.')
+    juncoes = improvement['location']
+    if juncoes is None:
+        print ("Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de adicionar uma faixa na referida via")
+    else:
+        sugestao = improvement['suggestion']
+        print( f'Para resolver tal problema, o Mapper.AI recomenda a avaliação da viabilidade de {sugestao} nos seguintes locais: {coords} que corresponde a {addresses}.')
 # Chamando a função para exibir o resultado
 start_address, end_address = get_congestion_addresses()
-return_result(start_address, end_address, improvements)
+coords = []
+return_result(start_address, end_address, improvements, coords)
+def get_addresses():
+    return start_address, end_address, improvements
+
+start_address, end_address = get_congestion_addresses()
 def get_addresses():
     return start_address, end_address

@@ -1,0 +1,21 @@
+Prezados avaliadores, 
+      É com prazer que o time Brainstoms apresenta a parte do nosso trabalho correspondente ao desenvolvimento da nossa IA 
+      e do banco de dados. Aqui estão algumas pontuações para que possam explorar da melhor maneira esta seção:
+        1- O código do Arquivo dados_pre_processados.py identifica onde está ocorrendo o engarrafamento na viagem 
+        determinada pelos valores das variáveis origem_geral e destino_geral (altere-as conforme a viagem que vocês querem testar),
+        também lembrem-se de que o horário para ser considerado é determinado pelos valores do departure time, alterem confome o horário
+        desejado sempre mantendo-o em referência ao futuro e envia isso para o código do arquivo Mapper_AI.py, este retorna uma mensagem 
+        dizendo onde está ocorrendo o engarrafamento e uma  sugestão de solução, e também mostra a imagem da região onde acontece o engar-
+        rafamento e uma imagem segmentada da nossa IA identificando está a estrada. As imagens são mostradas no plot, e a mensagem no terminal0 
+        para que o código rode por completo é necessário fechar a janela com as imagens após analisá-las;
+        2- Os arquivos codigo_oficial, teste, teste2, teste3 e teste_final representam nossas tentativas de sicronizar a IA com 
+        o MIT App Inventor, por meio de um servidor flask. O servidor que está se comunicando com o aplicativo é o que está no  
+        arquivo codigo_oficial;
+        3- O arquivo banco_de_dados representa o nosso banco de dados backend que faz a comunicação com o MIT App Inventor para 
+        configurações de usuário;
+        4 - No repositório Documentos-antigos-Mapper.AI do GitHub, podem acessar outros arquivos que nos acompanharam no desenvol-
+        vimento do nosso projeto, como o arquivo com o código de desenvolvimento da nossa IA e de treino também;
+        5- O txt libraries representa as bibliotecas que usamos.
+      Desde já somos gratos pela oportunidade e esperamos que com essas pontuações vocês podem desfrutar da melhor experiência 
+      ao avaliar nosso App.
+                                                                                        Gratos, integrantes do time Brainstorms.
